@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="screen-orientation" content="landscape">
+<title>Mar de Leyendas — prototipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Lilita+One&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--perg:#e9d8a6;--perg2:#d4b97e;--perg3:#f3e6c4;--tinta:#3b2a14;--tinta2:#6b4f2a;--lacre:#9b2226;--oro:#c9a227;--verde:#4f772d;--azul:#1d4e89}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d0906;color:var(--tinta);font-family:'Baloo 2',system-ui,sans-serif;font-weight:600;font-size:20px;line-height:1.2}
+#stage{position:absolute;width:960px;height:540px;transform-origin:0 0;overflow:hidden;background:#1b120b}
+#rotate{position:fixed;inset:0;z-index:99;background:#1b120b;color:var(--perg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:'Lilita One';font-size:30px;text-align:center;padding:20px}
+#rotate .ph{font-size:70px;animation:rot 2s infinite}
+@keyframes rot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(90deg)}}
+@media (orientation:portrait) and (max-width:820px){#rotate{display:flex}}
+.perg{background:radial-gradient(ellipse at 50% 40%,var(--perg3) 0%,var(--perg) 55%,var(--perg2) 100%);color:var(--tinta);border:2px solid var(--tinta);box-shadow:inset 0 0 22px rgba(107,79,42,.55),3px 3px 0 rgba(18,12,7,.8)}
+h1,h2,h3,.pir{font-family:'Lilita One',serif;font-weight:normal;letter-spacing:.5px}
+h1{font-size:56px;line-height:1;color:var(--lacre);font-family:'Pirata One',serif}h2{font-size:28px;line-height:1.1}h3{font-size:22px}
+.num{font-family:'Lilita One',sans-serif;font-size:20px;font-weight:normal}
+.abs{position:absolute}
+.full{position:absolute;inset:0}
+button{font-family:'Baloo 2',serif;font-size:19px;line-height:1.2;color:var(--tinta);cursor:pointer;width:100%;text-align:left;padding:8px 12px 8px 40px;position:relative;background:radial-gradient(ellipse at 50% 40%,var(--perg3) 0%,var(--perg) 60%,var(--perg2) 100%);border:2px solid var(--tinta);box-shadow:inset 0 0 14px rgba(107,79,42,.45),2px 2px 0 #120c07}
+button::before{content:'';position:absolute;left:12px;top:50%;width:17px;height:17px;margin-top:-8.5px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#c9343a,var(--lacre) 60%,#5c0f12)}
+button:active{transform:translate(1px,1px)}
+button:disabled{opacity:.45;cursor:default;transform:none}
+button:disabled::before{background:#8a7a5c}
+button small{display:block;font-weight:500;font-size:15px;color:var(--tinta2);margin-top:1px}
+button.primary{background:radial-gradient(ellipse at 50% 40%,#c0392b,var(--lacre) 70%,#6a1518);color:var(--perg3);text-align:center;padding-left:12px;font-family:'Lilita One';font-size:26px}
+button.primary small{color:var(--perg)}
+button.plain{padding-left:12px;text-align:center}
+button.primary::before,button.plain::before,button.ico::before{display:none}
+button.ico{width:auto;padding:2px 10px;font-size:24px;text-align:center}
+.muted{color:var(--tinta2);font-weight:500}
+img.spr{image-rendering:pixelated;display:block}
+.row{display:flex;gap:8px;align-items:center}
+/* HUD */
+.hud{position:absolute;top:0;left:0;right:0;height:58px;display:flex;align-items:center;gap:10px;padding:4px 10px;z-index:10;border-width:0 0 3px 0}
+.crewbar{display:flex;gap:6px}
+.port{width:44px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.ring{width:42px;height:42px;border-radius:50%;border:2px solid var(--tinta);background:#cdb37a;overflow:hidden;display:flex;justify-content:center;align-items:flex-start}
+.mini{height:5px;width:40px;background:#8a7a5c;border:1px solid var(--tinta);position:relative}
+.mini>i{position:absolute;inset:0 auto 0 0;background:var(--lacre)}
+.hudmid{flex:1;display:flex;justify-content:center;gap:16px;font-family:'Lilita One';font-size:20px}
+.low{color:var(--lacre);font-weight:bold;animation:blink 1s infinite}
+.quest{position:absolute;left:10px;bottom:10px;max-width:520px;font-size:17px;padding:5px 10px;z-index:9}
+.mapbtn{position:absolute;right:12px;bottom:12px;width:auto;z-index:9}
+#cv{position:absolute;inset:0;width:960px;height:540px;image-rendering:pixelated;touch-action:manipulation}
+#mini{position:absolute;right:10px;top:66px;width:160px;height:104px;border:2px solid var(--tinta);z-index:9;image-rendering:pixelated;box-shadow:2px 2px 0 rgba(0,0,0,.5)}
+.toast{position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:30;padding:6px 16px;font-size:19px;animation:toast 2.2s forwards;pointer-events:none;white-space:nowrap}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-10px)}10%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
+@keyframes blink{50%{opacity:.35}}
+/* Escenas */
+.vnbg{position:absolute;inset:0;background-size:cover!important;background-position:center!important}
+.vnbg::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 80px rgba(30,20,10,.6);pointer-events:none}
+.place{position:absolute;top:66px;left:50%;transform:translateX(-50%);font-family:'Lilita One';font-size:24px;padding:2px 18px;z-index:3;white-space:nowrap}
+.cast{position:absolute;bottom:150px;display:flex;align-items:flex-end;z-index:2}
+.cast.l{left:20px}.cast.r{right:20px;flex-direction:row-reverse}
+.cast .ch{transition:filter .25s,transform .25s;margin:0 -26px;filter:brightness(.45) saturate(.6)}
+.cast .ch.on{filter:none;transform:translateY(-8px)}
+.cast.r .ch img{transform:scaleX(-1)}
+.cast .ch.enter{animation:enter .35s}
+@keyframes enter{from{opacity:0;transform:translateY(24px)}}
+.dlg{position:absolute;left:16px;right:16px;bottom:12px;height:132px;padding:24px 22px 12px;cursor:pointer;z-index:4}
+.who{position:absolute;top:-18px;left:18px;font-family:'Lilita One';font-size:24px;padding:0 14px;background:var(--lacre);color:var(--perg3);border:2px solid var(--tinta)}
+.txt{font-size:22px;line-height:1.3}.txt.narr{color:var(--tinta2);font-weight:500}
+.tri{position:absolute;right:14px;bottom:8px;font-size:16px;animation:blink 1s infinite}
+.choices{position:absolute;right:16px;top:110px;width:440px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;z-index:5;padding:2px}
+.choices button{animation:enter .3s backwards}
+.choices.wide{left:50%;transform:translateX(-50%);right:auto}
+/* Combate */
+.bfield{position:absolute;inset:0;background-size:cover!important;background-position:center!important}
+.bfield::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(20,12,6,.55));pointer-events:none}
+.unit{position:absolute;display:flex;flex-direction:column;align-items:center;width:150px;transition:opacity .3s,filter .3s;z-index:2}
+.unit .spw{position:relative;height:104px;display:flex;align-items:flex-end}
+.unit.e .spw img{transform:scaleX(-1)}
+.unit .plate{width:146px;padding:2px 6px;background:rgba(243,230,196,.93);border:2px solid var(--tinta);border-radius:3px;margin-top:-4px}
+.unit .nm{font-family:'Lilita One';font-size:18px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.unit .nums{font-family:'Lilita One';font-size:15px;line-height:1.1}
+.unit.dead{opacity:.25;filter:grayscale(1)}
+.unit.dead.hasko{opacity:1;filter:none}.unit.dead.hasko .plate{opacity:.4;filter:grayscale(1)}
+.spw img.tecov{position:absolute;left:-18px;bottom:0;width:auto!important;z-index:3}
+.unit.turn .plate{border-color:#e0a800;box-shadow:0 0 0 3px #f2c14e,0 0 14px #f2c14e}
+.unit.turn .spw::after{content:'▼';position:absolute;top:-22px;left:50%;transform:translateX(-50%);color:#f2c14e;font-size:20px;text-shadow:0 0 4px #000;animation:blink .8s infinite}
+.unit.tgt{cursor:pointer}
+.unit.tgt .plate{border-color:#d00000;box-shadow:0 0 0 3px #e63946,0 0 16px #e63946;animation:tg .7s infinite}
+.unit.tgt.ally .plate{border-color:#2d6a4f;box-shadow:0 0 0 3px #52b788,0 0 16px #52b788}
+@keyframes tg{50%{transform:scale(1.05)}}
+.lunge-r .spw{animation:lr .32s}.lunge-l .spw{animation:ll .32s}
+@keyframes lr{50%{transform:translateX(34px)}}@keyframes ll{50%{transform:translateX(-34px)}}
+.hitf .spw{animation:shk .3s}
+@keyframes shk{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.bar{height:7px;background:#5c4a32;border:1px solid var(--tinta);position:relative;margin-top:2px}
+.bar>i{position:absolute;left:0;top:0;bottom:0;transition:width .3s}
+.bar.hp>i{background:linear-gradient(#7bc96f,#3f8f3a)}.bar.hp.e>i{background:linear-gradient(#ef6f6c,#b0302d)}
+.bar.pe>i{background:linear-gradient(#6ec6f0,#2a6f97)}
+.chips{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:3px;white-space:nowrap;z-index:4;pointer-events:none}
+.chip{font-family:'Lilita One';font-size:14px;line-height:1;padding:3px 7px;border-radius:12px;border:2px solid #1b120b;color:#fff;box-shadow:1px 2px 0 rgba(0,0,0,.45);text-shadow:1px 1px 0 rgba(0,0,0,.4);animation:pop .35s}
+.chip.up{background:linear-gradient(#ff9f43,#e8590c)}.chip.down{background:linear-gradient(#a06cd5,#6a3d9a)}
+.chip.def{background:linear-gradient(#4dabf7,#1c7ed6)}.chip.bleed{background:linear-gradient(#ff6b6b,#c1121f);animation:pop .35s,throb 1s infinite}
+.chip.guard{background:linear-gradient(#adb5bd,#495057)}.chip.globo{background:linear-gradient(#ffd166,#f4a261);color:#3b2a14;text-shadow:none}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes throb{50%{transform:scale(1.12)}}
+.unit.buffed .spw img{filter:drop-shadow(0 0 5px #ff9f43) drop-shadow(0 0 2px #ff9f43)}
+.unit.guarding .spw img{filter:drop-shadow(0 0 6px #4dabf7) drop-shadow(0 0 2px #4dabf7)}
+.unit.bleeding .spw{animation:redpulse 1s infinite}
+@keyframes redpulse{50%{filter:drop-shadow(0 0 8px #ff2b2b) saturate(1.4)}}
+.unit.ballooned .spw img{filter:drop-shadow(0 0 7px #ffd166)}
+.burst{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:5px solid;pointer-events:none;animation:burst .6s forwards;z-index:3}
+.burst.up{border-color:#ff9f43}.burst.def,.burst.guard{border-color:#4dabf7}.burst.bleed{border-color:#ff2b2b}.burst.heal{border-color:#52b788}.burst.globo{border-color:#ffd166}
+@keyframes burst{to{transform:scale(5);opacity:0}}
+.float.st{font-size:24px;padding:2px 10px;border-radius:14px;border:2px solid #1b120b;text-shadow:1px 1px 0 rgba(0,0,0,.4);color:#fff;animation:upst 1.3s forwards}
+.float.st.up{background:#e8590c}.float.st.def{background:#1c7ed6}.float.st.bleed{background:#c1121f}.float.st.guard{background:#495057}.float.st.globo{background:#f4a261;color:#3b2a14}
+@keyframes upst{0%{opacity:0;margin-top:10px}15%{opacity:1;margin-top:0}75%{opacity:1}100%{opacity:0;margin-top:-40px}}
+.float{position:absolute;top:10px;left:50%;font-family:'Lilita One';font-size:30px;color:#e63946;text-shadow:2px 2px 0 #1b120b,-1px -1px 0 #1b120b;animation:up .95s forwards;pointer-events:none;z-index:6;white-space:nowrap;transform:translateX(-50%)}
+.float.crit{font-size:36px;color:#ffb703}.float.heal{color:#52b788}.float.info{color:#8ecae6;font-size:24px}.float.pe{color:#4cc9f0;font-size:26px}.float.buff{color:#f4a261;font-size:24px}
+@keyframes up{from{opacity:1;margin-top:0}to{opacity:0;margin-top:-50px}}
+.banner{position:absolute;left:0;right:0;top:170px;text-align:center;font-family:'Lilita One';font-size:46px;pointer-events:none;animation:ban 1.2s forwards;z-index:7;text-shadow:3px 3px 0 #1b120b,-2px -2px 0 #1b120b}
+.banner.atk{color:#ff6b6b}.banner.tec{color:#7ec8ff}.banner.combo{color:#ffd166}.banner.foe{color:#ff8c42}.banner.win{color:#ffd166}.banner.lose{color:#adb5bd}
+@keyframes ban{0%{opacity:0;transform:scale(1.5)}20%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:0}}
+.queue{position:absolute;top:64px;left:12px;display:flex;gap:4px;padding:4px 8px;z-index:5;align-items:center}
+.queue .lab{font-family:'Lilita One';font-size:16px;margin-right:4px}
+.queue .q{width:36px;height:36px;border:3px solid #2a6f97;border-radius:50%;overflow:hidden;background:#cfe3ef}
+.queue .q.e{border-color:#b0302d;background:#f2d0cf}
+.queue .q.now{transform:scale(1.18);box-shadow:0 0 0 2px #f2c14e,0 0 10px #f2c14e}
+.blog{position:absolute;left:12px;bottom:12px;width:380px;height:118px;font-size:17px;padding:8px 12px;z-index:5;overflow:hidden}
+.blog .l0{font-weight:bold}.blog .lp{color:#1d4e89}.blog .le{color:#9b2226}.blog .lx{color:#6b4f2a}
+.cmd{position:absolute;right:12px;bottom:12px;width:540px;z-index:5}
+.cmdhead{padding:4px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;font-size:19px}
+.cmdhead.foe{background:linear-gradient(90deg,#9b2226,#6a1518);color:var(--perg3)}
+.cmdgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.cmdlist{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:190px;overflow-y:auto}
+.cbtn{color:#fff;text-align:center;padding:9px 6px 7px;font-family:'Lilita One';font-size:21px;letter-spacing:.3px;text-shadow:1px 1px 0 rgba(0,0,0,.5);border:2px solid #1b120b;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25),inset 0 2px 0 rgba(255,255,255,.25),2px 2px 0 #120c07}
+.cbtn::before{display:none}
+.cbtn small{color:rgba(255,255,255,.9);font-family:'Baloo 2';font-weight:600;font-size:14px;text-shadow:none}
+.cbtn.atk{background:linear-gradient(#e05a47,#a8321f)}
+.cbtn.tec{background:linear-gradient(#4a90d9,#24609e)}
+.cbtn.obj{background:linear-gradient(#6fb04a,#3f7a25)}
+.cbtn.def{background:linear-gradient(#8d99ae,#4d5a70)}
+.cbtn.run{background:linear-gradient(#e0a03a,#a8691a)}
+.cbtn.back{background:linear-gradient(#a39a83,#6e6656);font-size:19px}
+.cbtn.t-one{background:linear-gradient(#e0703a,#a8441a)}.cbtn.t-all{background:linear-gradient(#9b6bd6,#5e3a9e)}
+.cbtn.t-ally{background:linear-gradient(#52b788,#2d6a4f)}.cbtn.t-self{background:linear-gradient(#4a90d9,#24609e)}
+.cbtn.t-combo{background:linear-gradient(#f2c14e,#c08a10);color:#3b2a14;text-shadow:none}.cbtn.t-combo small{color:#3b2a14}
+.cbtn.t-item{background:linear-gradient(#6fb04a,#3f7a25)}
+.cbtn{font-size:21px;text-align:left;padding-left:12px}.cmdgrid .cbtn{text-align:center;padding-left:6px}
+.pe-tag{float:right;font-family:'Lilita One';font-size:16px;background:rgba(0,0,0,.3);padding:0 6px;border-radius:3px}
+/* Bitácora */
+.modal{position:absolute;inset:0;background:rgba(18,12,7,.75);display:flex;align-items:center;justify-content:center;z-index:40}
+.modal>.card{width:860px;height:500px;padding:12px 16px;display:flex;flex-direction:column}
+.mbody{flex:1;overflow-y:auto;padding-right:6px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:4px 0 8px}
+.tabs button{width:auto;padding:3px 12px;font-size:17px}.tabs button::before{display:none}
+.tabs button.on{background:var(--lacre);color:var(--perg3)}
+.slot{display:flex;justify-content:space-between;align-items:center;font-size:18px;padding:4px 0;border-bottom:1px dashed var(--tinta2);gap:8px}
+.pick{display:flex;gap:12px;align-items:center}.pick img{flex:none}
+.sk{padding:6px 0;border-bottom:1px dashed var(--tinta2)}
+.lock{opacity:.5}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:560px;padding:18px 24px;text-align:center;z-index:20}
+
+/* Menú de pausa */
+.menubtn{font-family:'Lilita One';font-size:20px;padding:4px 14px}
+.pov{position:absolute;inset:0;background:rgba(18,12,7,.5);z-index:40}
+.pmenu{position:absolute;right:12px;top:66px;width:262px;padding:10px;z-index:43;display:flex;flex-direction:column;gap:5px;animation:slidein .18s}
+@keyframes slidein{from{transform:translateX(40px);opacity:0}}
+.pmenu button{font-family:'Lilita One';font-size:20px;padding:5px 10px 5px 52px;text-align:left}
+.pmenu button::before{display:none}
+.pmenu button .ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:24px;width:32px;text-align:center}
+.pmenu button.sel{background:radial-gradient(ellipse,#fff3c4,#ffd166);box-shadow:inset 0 0 0 3px var(--lacre),2px 2px 0 #120c07}
+.pmenu button.sel::after{content:'▶';position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--lacre);font-size:16px}
+.pdetail{position:absolute;left:12px;top:66px;right:288px;bottom:12px;padding:12px 18px;z-index:42;overflow-y:auto;animation:slidein .18s}
+.pdetail h2{margin-bottom:6px}
+.qrow{display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-bottom:1px dashed var(--tinta2);font-size:18px}
+.qrow .ck{font-size:20px;width:26px;flex:none}
+.qrow.done{color:var(--tinta2)}.qrow.done span.t{text-decoration:line-through}
+.opt{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--tinta2);font-size:19px;gap:10px}
+.sw{display:flex;gap:4px}.sw button{width:auto;padding:4px 12px;font-size:16px}.sw button::before{display:none}.sw button.on{background:var(--lacre);color:var(--perg3)}
+textarea.code{width:100%;height:70px;font-family:monospace;font-size:12px;border:2px solid var(--tinta);background:var(--perg3);padding:6px}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="rotate"><div class="ph">📱</div>Gira el móvil para jugar<div style="font-family:'Baloo 2';font-size:18px">Mar de Leyendas se juega en horizontal</div></div>
+<script>
+/* =========================================================================
+   MAR DE LEYENDAS — v0.6 (versión para amigos) · formato horizontal 960x540
+   ASSETS: sprites de Rubén (PNG 64x64 transparente, mirando a la derecha)
+   ========================================================================= */
+const ASSETS={
+  ...Object.fromEntries(['luffy','zoro','coby','nami','sanji','chopper','helmeppo','morgan','bucanero','cangrejo','tabernera','marine','fusilero','mercader','reymarino'].map(k=>[k,{idle:[`sprites/${k}_reposo_1.png`,`sprites/${k}_reposo_2.png`],atk:`sprites/${k}_ataque.png`,hit:`sprites/${k}_golpe.png`}]))
+};
+ASSETS.luffy.tec=['sprites/luffy_tecnica_0.png','sprites/luffy_tecnica_1.png'];ASSETS.luffy.ko='sprites/luffy_ko.png';
+ASSETS.luffywin={idle:['sprites/luffy_victoria_0.png','sprites/luffy_victoria_1.png']};
+/* Luffy caminando por las islas: 0-2 abajo, 3-5 arriba, 6-11 derecha (izquierda = espejo) */
+const WALK={down:[0,1,2],up:[3,4,5],right:[6,7,8,9,10,11]};
+const walkSrc=i=>`sprites/luffy_walk_${String(i).padStart(2,'0')}.png`;
+const ASSETS_BG={}; // p. ej. playa:'fondos/playa.png'
+
+const W=960,H=540;
+const stage=document.getElementById('stage');
+function fit(){const s=Math.min(innerWidth/W,innerHeight/H);stage.style.transform=`scale(${s})`;stage.style.left=(innerWidth-W*s)/2+'px';stage.style.top=(innerHeight-H*s)/2+'px'}
+addEventListener('resize',fit);fit();
+const later=(fn,ms)=>window.SIM?fn():setTimeout(fn,ms);
+const rand=Math.random,ri=(a,b)=>a+Math.floor(rand()*(b-a+1)),pick=a=>a[Math.floor(rand()*a.length)],chance=p=>rand()<p,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function hash(x,y,s=0){let h=(x*374761393+y*668265263+s*982451653)|0;h=(h^(h>>>13))*1274126177|0;return((h^(h>>>16))>>>0)/4294967296}
+
+/* ------------------------------------------------------------------------
+   SPRITES PROVISIONALES (genéricos). Con nombre propio = silueta.
+   ------------------------------------------------------------------------ */
+function makeSprite(o){
+  const c=document.createElement('canvas');c.width=32;c.height=32;const x=c.getContext('2d');
+  const px=(a,b,w,h,col)=>{x.fillStyle=col;x.fillRect(a,b,w,h)};
+  const disc=(cx,cy,r,col)=>{x.fillStyle=col;for(let j=-r;j<=r;j++)for(let i=-r;i<=r;i++)if(i*i+j*j<=r*r+r*.6)x.fillRect(cx+i,cy+j,1,1)};
+  if(o.kind==='serpent'){px(0,27,32,5,'#1d4e89');disc(7,26,4,'#2d6a4f');disc(11,21,4,'#2d6a4f');disc(15,16,4,'#2d6a4f');disc(19,11,4,'#2d6a4f');disc(23,7,5,'#2d6a4f');px(14,14,2,6,'#a7c4a0');disc(27,9,3,'#2d6a4f');px(23,4,3,3,'#c9a227');px(26,11,4,1,'#14110f');px(27,12,1,2,'#fff')}
+  else if(o.kind==='crab'){for(let k=0;k<3;k++){px(6+k*3,24+k,2,5,'#9e2a2b');px(22-k*3,24+k,2,5,'#9e2a2b')}disc(16,21,8,'#c0392b');disc(5,12,4,'#c0392b');disc(27,12,4,'#c0392b');px(12,10,2,6,'#c0392b');px(18,10,2,6,'#c0392b');px(11,8,4,3,'#fff');px(17,8,4,3,'#fff');px(13,9,2,2,'#14110f');px(19,9,2,2,'#14110f')}
+  else if(o.sil){const s='#4a3a2a';px(12,24,3,5,s);px(17,24,3,5,s);px(11,29,4,2,s);px(17,29,5,2,s);px(11,16,10,8,s);px(9,17,2,7,s);px(21,17,2,7,s);px(10,4,12,12,s);px(9,5,14,10,s);px(11,5,4,3,'#6b5640');x.fillStyle='#f3e6c4';x.font='bold 9px monospace';x.fillText('?',13,13)}
+  else{
+    if(o.coat){px(8,16,16,11,o.coat)}
+    px(12,24,3,5,o.pants||'#40516b');px(17,24,3,5,o.pants||'#40516b');px(11,29,4,2,'#3b2a1a');px(17,29,5,2,'#3b2a1a');
+    if(o.dress){px(9,20,14,9,o.dress)}
+    px(11,16,10,8,o.top);if(o.top2)for(let y=17;y<23;y+=2)px(11,y,10,1,o.top2);
+    if(o.apron)px(12,18,8,9,'#f3e6c4');
+    px(9,17,2,5,o.coat||o.top);px(9,22,2,2,o.skin);
+    px(10,4,12,12,o.skin);px(9,5,14,10,o.skin);px(22,9,1,2,o.skin);
+    px(9,3,14,3,o.hair);px(9,3,3,9,o.hair);px(10,2,11,1,o.hair);if(o.longhair)px(8,5,3,12,o.hair);
+    if(o.bald){px(9,3,14,3,o.skin);px(10,2,11,1,o.skin)}
+    px(16,8,2,3,'#14110f');px(20,8,2,3,'#14110f');px(16,8,1,1,'#fff');px(20,8,1,1,'#fff');
+    if(o.beard){px(13,12,10,4,o.hair)}else px(18,13,3,1,'#7a2e1f');
+    const hc=o.hatC||'#9b2226';
+    if(o.hat==='bandana'){px(9,2,14,4,hc);px(6,4,4,2,hc)}
+    if(o.hat==='pañuelo'){px(9,2,14,3,hc);px(8,3,2,6,hc)}
+    if(o.hat==='marine'){px(9,0,14,5,'#f3e6c4');px(9,5,14,1,'#1d4e89');px(21,5,5,1,'#1d3557');px(15,1,2,3,'#1d4e89')}
+    px(21,17,2,4,o.coat||o.top);px(21,21,2,2,o.skin);
+    const w=o.weapon;
+    if(w==='sword'){px(23,7,1,14,'#dfe7ea');px(21,20,5,1,'#c9a227')}
+    if(w==='gun'){px(22,19,8,2,'#37474f');px(22,21,3,3,'#6d4c41')}
+    if(w==='mug'){px(22,18,5,5,'#c9a227');px(23,17,3,1,'#fff')}
+    if(w==='bag'){px(23,19,6,6,'#8d5524');px(25,21,2,2,'#c9a227')}
+    if(w==='hammer'){px(24,10,1,14,'#5a3214');px(22,8,6,4,'#6e6656')}
+    if(w==='rod'){px(24,4,1,20,'#8d5524');px(25,4,1,10,'#dfe7ea')}
+    if(w==='basket'){px(22,20,7,5,'#c8a27a');px(23,19,5,1,'#f3e6c4')}
+    if(w==='club'){px(23,9,3,13,'#6b3f1a')}
+  }
+  const im=x.getImageData(0,0,32,32),d=im.data,src=new Uint8ClampedArray(d),al=(i,j)=>i>=0&&j>=0&&i<32&&j<32&&src[(j*32+i)*4+3]>0;
+  for(let j=0;j<32;j++)for(let i=0;i<32;i++){const k=(j*32+i)*4;if(src[k+3]===0&&(al(i-1,j)||al(i+1,j)||al(i,j-1)||al(i,j+1))){d[k]=43;d[k+1]=29;d[k+2]=18;d[k+3]=255}}
+  x.putImageData(im,0,0);return c;
+}
+const sprCv={},sprUrl={};
+function sprCanvas(key){return sprCv[key]||(sprCv[key]=makeSprite(SPR[key]||{sil:true}))}
+function sprSrc(key,pose='idle',f=0){const a=ASSETS[key];if(a){if(pose==='idle')return a.idle[f%a.idle.length];return a[pose]||a.idle[0]}return sprUrl[key]||(sprUrl[key]=sprCanvas(key).toDataURL())}
+function img(key,size=64){return `<img class="spr" data-k="${key}" src="${sprSrc(key)}" width="${size}" height="${size}" alt="">`}
+let animTick=0;
+setInterval(()=>{animTick++;stage.querySelectorAll('img.spr[data-k]').forEach(el=>{if(el.dataset.pose)return;const a=ASSETS[el.dataset.k];if(a&&a.idle.length>1)el.src=a.idle[animTick%a.idle.length]})},480);
+function pose(el,p,ms=420){if(!el)return;const k=el.dataset.k;if(!ASSETS[k]||!ASSETS[k][p])return;el.dataset.pose=p;el.src=sprSrc(k,p);setTimeout(()=>{delete el.dataset.pose;el.src=sprSrc(k)},ms)}
+const IMGS={};function imgObj(src){if(!IMGS[src]){const i=new Image();i.src=src;IMGS[src]=i}return IMGS[src]}
+Object.values(ASSETS).forEach(a=>[...a.idle,a.atk,a.hit,...(a.tec||[]),a.ko].forEach(s=>s&&imgObj(s)));for(let i=0;i<12;i++)imgObj(walkSrc(i));for(let i=0;i<4;i++)imgObj(`sprites/barco_${i}.png`);
+
+const SPR={
+ bucanero:{skin:'#e0a37a',hair:'#5a2d0c',top:'#8d5524',pants:'#40516b',hat:'bandana',hatC:'#40516b',weapon:'club',beard:true},
+ marine:{skin:'#f1c39b',hair:'#5a2d0c',top:'#f3e6c4',top2:'#1d4e89',pants:'#1d3557',hat:'marine',weapon:'sword'},
+ fusilero:{skin:'#e0a37a',hair:'#14110f',top:'#f3e6c4',top2:'#1d4e89',pants:'#1d3557',hat:'marine',weapon:'gun'},
+ cangrejo:{kind:'crab'},reymarino:{kind:'serpent'},
+ tabernera:{skin:'#f1c39b',hair:'#2d6a4f',top:'#f3e6c4',dress:'#6b4f2a',apron:true,longhair:true,weapon:'mug'},
+ mercader:{skin:'#e0a37a',hair:'#8a7a5c',top:'#6d597a',hat:'pañuelo',hatC:'#c9a227',beard:true,weapon:'bag'},
+ duena:{skin:'#f1c39b',hair:'#5a2d0c',top:'#e5989b',dress:'#b5838d',apron:true,longhair:true},
+ nina:{skin:'#f1c39b',hair:'#5a2d0c',top:'#f7c59f',dress:'#e5989b',longhair:true,weapon:'basket'},
+ carpintero:{skin:'#c68642',hair:'#14110f',top:'#c8a27a',pants:'#5a3214',hat:'bandana',hatC:'#c9a227',beard:true,weapon:'hammer'},
+ pescador:{skin:'#e0a37a',hair:'#f3e6c4',top:'#2a6f97',pants:'#40516b',hat:'pañuelo',hatC:'#9b2226',beard:true,weapon:'rod'},
+ aldeano:{skin:'#e0a37a',hair:'#8d5524',top:'#a3b18a',pants:'#5a3214'},
+ abuela:{skin:'#f1c39b',hair:'#dfe7ea',top:'#6d597a',dress:'#4a4e69',longhair:true},
+ marinerox:{skin:'#c68642',hair:'#14110f',top:'#f3e6c4',top2:'#9b2226',pants:'#1d3557',hat:'pañuelo',hatC:'#1d4e89'}
+};
+
+/* Fondos provisionales de escena */
+const BGS={
+ cubierta:'linear-gradient(180deg,#a8d5e2 0 38%,#3d7ea6 38% 50%,#5a3214 50% 53%,transparent 53%),repeating-linear-gradient(90deg,#8d5524 0 54px,#6b3f1a 54px 57px)',
+ pueblo:'radial-gradient(circle at 80% 20%,#ffd166 0 5%,transparent 6%),linear-gradient(180deg,#f7c59f 0 45%,#b5838d 45% 52%,#e5c3a6 52% 70%,#c8a27a 70%)',
+ taberna:'radial-gradient(circle at 75% 22%,rgba(255,200,90,.55),transparent 28%),linear-gradient(180deg,#5a3a22 0 62%,#2b1d12 62% 64%,#7a4a26 64%)',
+ muelle:'linear-gradient(180deg,#c9dbe6 0 40%,#5c7d99 40% 58%,#6e6656 58% 61%,#a39a83 61%)',
+ patio:'linear-gradient(180deg,#9fb6c8 0 30%,#8d99ae 30% 60%,#6c757d 60% 62%,#b8a88a 62%)',
+ torre:'linear-gradient(180deg,#495057 0 15%,#6c757d 15% 60%,#343a40 60% 62%,#5c5470 62%)',
+ cueva:'radial-gradient(ellipse at 50% 35%,#4f6d7a 0 18%,#22333b 45%,#0b1316 75%)',
+ mar:'linear-gradient(180deg,#bde0fe 0 46%,#2a6f97 46%)',
+ tormenta:'linear-gradient(180deg,#3d405b 0 46%,#1b263b 46%)',
+ playa:'radial-gradient(circle at 82% 18%,#fff3b0 0 6%,transparent 7%),linear-gradient(180deg,#a8d5e2 0 42%,#3d7ea6 42% 56%,#f6e7c1 56% 59%,#e9d8a6 59%)',
+ tienda:'linear-gradient(180deg,#7f5539 0 18%,#9c6644 18% 21%,#7f5539 21% 44%,#9c6644 44% 47%,#7f5539 47% 66%,#b08968 66%)',
+ astillero:'linear-gradient(180deg,#a8d5e2 0 38%,#3d7ea6 38% 50%,#8d5524 50% 53%,#c8a27a 53%)'
+};
+function bgStyle(k){return ASSETS_BG[k]?`background:url('${ASSETS_BG[k]}') center/cover`:`background:${BGS[k]||BGS.mar}`}
+
+/* ------------------------------------------------------------------------
+   TEXTURAS DE TILES (16x16 dibujadas a x3) — arte provisional original
+   ------------------------------------------------------------------------ */
+const TS=48;
+function tex(fn){const c=document.createElement('canvas');c.width=c.height=16;const x=c.getContext('2d');const p=(a,b,w,h,col)=>{x.fillStyle=col;x.fillRect(a,b,w,h)};fn(p,x);return c}
+function speck(p,cols,n,s){for(let k=0;k<n;k++){p(Math.floor(hash(k,s)*16),Math.floor(hash(s,k,7)*16),1,1,cols[k%cols.length])}}
+const TX={};
+function buildTex(){
+  for(let f=0;f<4;f++){
+    TX['water'+f]=tex(p=>{p(0,0,16,16,'#2b6cb0');speck(p,['#2763a3','#3477bd'],20,3);const o=f*4;p((o+2)%16,4,4,1,'#6fa8dc');p((o+10)%16,11,5,1,'#6fa8dc');p((o+5)%16,8,2,1,'#5b9bd5')});
+    TX['deep'+f]=tex(p=>{p(0,0,16,16,'#1d4f86');speck(p,['#1a4778','#235a96'],20,5);const o=f*4;p((o+3)%16,5,4,1,'#3f7fc0');p((o+11)%16,12,4,1,'#3f7fc0')});
+    TX['shal'+f]=tex(p=>{p(0,0,16,16,'#3f95cf');speck(p,['#4aa3dc','#3a8bc2'],20,9);const o=f*4;p((o+1)%16,6,5,1,'#9fd3f2');p((o+9)%16,12,4,1,'#9fd3f2')});
+  }
+  TX.sand=tex(p=>{p(0,0,16,16,'#ead39a');speck(p,['#d9bf82','#f5e4b5','#dcc48c'],18,11)});
+  TX.grass=tex(p=>{p(0,0,16,16,'#6ab04c');speck(p,['#5a9a3e','#7cc35a'],22,13);p(3,4,1,2,'#4f8a35');p(11,10,1,2,'#4f8a35');p(7,13,1,2,'#4f8a35')});
+  TX.flower=tex(p=>{p(0,0,16,16,'#6ab04c');speck(p,['#5a9a3e','#7cc35a'],16,17);p(3,3,2,2,'#f7d6e0');p(11,6,2,2,'#ffd166');p(6,11,2,2,'#f7d6e0');p(12,12,2,2,'#e9ecef')});
+  TX.path=tex(p=>{p(0,0,16,16,'#c9a26b');speck(p,['#b28a55','#d8b583','#a77f4c'],18,19)});
+  TX.dock=tex(p=>{for(let r=0;r<4;r++){p(0,r*4,16,4,r%2?'#9c6b3c':'#8d5f33');p(0,r*4+3,16,1,'#5a3a1c')}p(2,1,1,1,'#3b2a14');p(13,5,1,1,'#3b2a14');p(7,9,1,1,'#3b2a14')});
+  TX.rock=tex(p=>{p(0,0,16,16,'#ead39a');p(3,5,10,9,'#7d7d7d');p(4,4,8,2,'#8f8f8f');p(4,5,4,3,'#a5a5a5');p(3,13,10,1,'#555')});
+  TX.cliff=tex(p=>{p(0,0,16,16,'#6b6158');speck(p,['#5a5148','#7d7268'],24,23);p(2,6,5,1,'#4a4239');p(9,11,5,1,'#4a4239');p(0,0,16,2,'#857a6f')});
+  TX.tree=tex(p=>{p(0,0,16,16,'#6ab04c');speck(p,['#5a9a3e'],8,29);p(7,10,2,5,'#6b3f1a');p(2,1,12,10,'#2f7d32');p(1,3,14,6,'#2f7d32');p(3,2,6,3,'#4caf50');p(4,8,9,3,'#1b5e20');p(5,15,6,1,'#3d7a2a')});
+  TX.palm=tex(p=>{p(0,0,16,16,'#ead39a');p(8,6,2,9,'#8d5524');p(7,10,2,5,'#8d5524');p(2,3,6,2,'#2f7d32');p(9,2,6,2,'#2f7d32');p(5,1,6,3,'#4caf50');p(1,5,3,1,'#2f7d32');p(13,4,2,2,'#2f7d32');p(8,5,2,2,'#6b3f1a')});
+  TX.roof=tex(p=>{for(let r=0;r<4;r++){p(0,r*4,16,4,r%2?'#b23a2e':'#c2493a');for(let c=0;c<4;c++)p(c*4+(r%2)*2,r*4+3,3,1,'#8f2d24')}});
+  TX.roofB=tex(p=>{for(let r=0;r<4;r++){p(0,r*4,16,4,r%2?'#3a6ea5':'#467dbb');for(let c=0;c<4;c++)p(c*4+(r%2)*2,r*4+3,3,1,'#2b5280')}});
+  TX.wall=tex(p=>{p(0,0,16,16,'#e2cfa3');p(0,0,16,2,'#8f2d24');p(0,14,16,2,'#a58a5c');p(2,5,4,4,'#5b8fb9');p(2,5,4,1,'#3b2a14');p(10,5,4,4,'#5b8fb9');p(3,6,1,1,'#cfe8f7')});
+  TX.stone=tex(p=>{p(0,0,16,16,'#9aa5b1');for(let r=0;r<4;r++){p(0,r*4+3,16,1,'#7b8794');p((r%2)*6+2,r*4,1,3,'#7b8794');p((r%2)*6+9,r*4,1,3,'#7b8794')}});
+  TX.stoneF=tex(p=>{p(0,0,16,16,'#8a95a1');for(let r=0;r<3;r++)p(0,r*4+3,16,1,'#6b7684');p(0,12,16,4,'#3a5f8a');p(0,12,16,1,'#c9a227')});
+  TX.door=tex(p=>{p(0,0,16,16,'#e2cfa3');p(0,0,16,2,'#8f2d24');p(4,4,8,12,'#5a3214');p(4,4,8,1,'#3b2a14');p(10,10,1,1,'#c9a227');p(5,5,6,1,'#7a4a26')});
+  TX.doorS=tex(p=>{p(0,0,16,16,'#8a95a1');p(4,3,8,13,'#3b2a14');p(5,4,6,12,'#5a3214');p(10,10,1,1,'#c9a227');p(0,12,4,4,'#3a5f8a');p(12,12,4,4,'#3a5f8a')});
+  TX.cave=tex(p=>{p(0,0,16,16,'#6b6158');p(3,5,10,11,'#1b1612');p(4,4,8,1,'#1b1612');p(2,8,1,8,'#4a4239');p(13,8,1,8,'#4a4239')});
+}
+buildTex();
+
+/* ------------------------------------------------------------------------
+   PERSONAJES, TÉCNICAS, ENEMIGOS, OBJETOS
+   ------------------------------------------------------------------------ */
+const CHARS={
+ luffy:{n:'Luffy',hp:62,pe:10,atk:9,def:4,spd:8,g:{hp:9,atk:2,def:1,spd:1},start:['pistol'],fruit:'Fruta Goma Goma: las balas le rebotan',
+  skills:[
+   {id:'pistol',n:'Gomu Gomu no Pistol',pe:3,t:'one',pow:1.7,d:'Puñetazo elástico a un enemigo'},
+   {id:'latigo',n:'Gomu Gomu no Látigo',pe:5,t:'all',pow:1.0,d:'Barrido a todos los enemigos',req:'pistol'},
+   {id:'bazooka',n:'Gomu Gomu no Bazooka',pe:7,t:'one',pow:2.7,d:'Empujón doble devastador',req:'pistol'},
+   {id:'globo',n:'Gomu Gomu no Globo',pe:3,t:'self',d:'Se infla: devuelve los golpes cuerpo a cuerpo este turno',req:'latigo'},
+   {id:'haki',n:'??? (Haki)',lock:true,d:'Un poder que aún no comprendes...'}]},
+ zoro:{n:'Zoro',hp:58,pe:10,atk:11,def:4,spd:7,g:{hp:8,atk:2.5,def:1,spd:.6},start:['onigiri'],
+  skills:[
+   {id:'onigiri',n:'Oni Giri',pe:4,t:'one',pow:2.0,d:'Corte triple a un enemigo'},
+   {id:'toragari',n:'Tora Gari',pe:4,t:'one',pow:1.6,bleed:4,d:'Corte que hace sangrar (4 por turno)'},
+   {id:'tatsumaki',n:'Tatsumaki',pe:7,t:'all',pow:1.4,d:'Torbellino que golpea a todos',req:'onigiri'},
+   {id:'meditar',n:'Meditación',pe:2,t:'self',buff:1.35,d:'+35% de ataque durante 3 turnos',req:'toragari'},
+   {id:'haki',n:'??? (Haki)',lock:true,d:'Algún día cortará el acero...'}]},
+ coby:{n:'Coby',hp:36,pe:8,atk:5,def:3,spd:6,g:{hp:5,atk:1,def:1,spd:.5},start:['animo','vendas'],guest:true,
+  skills:[
+   {id:'animo',n:'¡Ánimo!',pe:3,t:'ally',buff:1.3,d:'+30% de ataque a un aliado (3 turnos)'},
+   {id:'vendas',n:'Vendas',pe:3,t:'ally',heal:22,d:'Cura 22 a un aliado'}]}
+};
+const COMBO={n:'Gomu Gomu + Oni Giri',d:'Ataque combinado: 4 PE de cada uno',pow:3.8};
+const FOES={
+ bucanero:{n:'Bucanero',hp:28,atk:7,def:2,spd:5,xp:9,gold:[6,12],moves:[{n:'Garrotazo',pow:1,w:3},{n:'Golpe sucio',pow:1.4,w:1}],drop:[['carne',.3],['eq:guantes',.07]]},
+ marine:{n:'Marine',hp:32,atk:8,def:3,spd:6,xp:11,gold:[8,14],moves:[{n:'Sablazo',pow:1,w:3},{n:'Formación',def:3,w:1}],drop:[['medicina',.25],['eq:chaqueta',.07]]},
+ fusilero:{n:'Fusilero',hp:24,atk:9,def:2,spd:7,xp:11,gold:[8,14],moves:[{n:'Disparo',pow:1.1,ranged:true,w:3},{n:'Ráfaga',pow:.7,ranged:true,all:true,w:1}],drop:[['bomba',.3]]},
+ helmeppo:{n:'Helmeppo',hp:42,atk:7,def:2,spd:6,xp:16,gold:[20,20],moves:[{n:'Pistolita',pow:1,ranged:true,w:2},{n:'¡Se lo diré a mi padre!',buffAll:1.2,w:1}],drop:[['eq:bandana',1]]},
+ cangrejo:{n:'Cangrejo gigante',hp:75,atk:11,def:7,spd:3,xp:35,gold:[25,35],elite:true,moves:[{n:'Pinzazo',pow:1.3,w:3},{n:'Caparazón',def:6,w:1}],drop:[['eq:collar',1]]},
+ reymarino:{n:'Rey Marino',hp:130,atk:12,def:5,spd:6,xp:70,gold:[40,60],elite:true,moves:[{n:'Mordisco',pow:1.35,w:3},{n:'Oleaje',pow:.8,all:true,w:2}],drop:[['rare:diente',1]]},
+ morgan:{n:'Capitán Morgan',hp:190,atk:13,def:6,spd:5,xp:110,gold:[80,80],boss:true,moves:[{n:'Hachazo',pow:1.3,w:3},{n:'Barrido de hacha',pow:.9,all:true,w:2},{n:'¡Aquí mando yo!',self:1.25,w:1}],drop:[['eq:katana',1]]}
+};
+const ITEMS={
+ carne:{n:'Carne con hueso',d:'Cura 40 a un aliado',t:'ally',heal:40,p:15},
+ medicina:{n:'Medicina',d:'Cura 20 a todo el grupo',t:'party',heal:20,p:25},
+ bomba:{n:'Bomba de mano',d:'15 de daño a todos los enemigos',t:'foes',dmg:15,p:30},
+ sake:{n:'Sake',d:'Recupera 5 PE a un aliado',t:'ally',pe:5,p:20}
+};
+const EQUIP={
+ guantes:{n:'Guantes de cuero',s:'arma',atk:2,p:60},garrote:{n:'Garrote de roble',s:'arma',atk:3,p:85,not:['zoro']},katana:{n:'Katana del capitán',s:'arma',atk:5,only:['zoro']},
+ chaleco:{n:'Chaleco de cuero',s:'ropa',def:2,p:50},chaqueta:{n:'Chaqueta de marine',s:'ropa',def:3,spd:-1,p:70},camisa:{n:'Camisa ligera',s:'ropa',def:1,spd:1,p:70},
+ bandana:{n:'Bandana de la suerte',s:'acc',atk:1,spd:1},collar:{n:'Collar de dientes',s:'acc',hp:10},brujula:{n:'Brújula de bolsillo',s:'acc',spd:2,p:90}
+};
+const SLOT_TXT={arma:'Arma',ropa:'Ropa',acc:'Accesorio'};
+const RARES={perla:{n:'Perla del islote',d:'+10 de vida máxima a toda la tripulación'},doblon:{n:'Doblón maldito',d:'+30% de berries en los combates'},diente:{n:'Colmillo de Rey Marino',d:'+2 de ataque a toda la tripulación'}};
+const UPG={canones:{n:'Cañones',d:'En combates en el mar, andanada inicial (12 de daño a todos)',p:120},velas:{n:'Velas reforzadas',d:'Menos daño en tormentas, huir más fácil y +10 casco',p:90},mascaron:{n:'Mascarón de proa',d:'Los barcos enemigos tardan más en reaccionar y huir es más fácil',p:70}};
+
+/* ------------------------------------------------------------------------
+   MAR: mundo de 60x40 casillas. Las islas son formas orgánicas grandes y el
+   dibujo del mar se genera una vez (suave, sin pixelar) y se anima encima.
+   ------------------------------------------------------------------------ */
+const SW=60,SH=40;
+const SEA_ISL=[
+ {id:'villa',n:'Villa Molino',cx:9,cy:8,r:5.2,seed:1,town:'villa'},
+ {id:'puerto',n:'Puerto Gaviota',cx:50,cy:7.5,r:4.8,seed:2,town:'puerto'},
+ {id:'shells',n:'Shells Town',cx:46,cy:30,r:6.2,seed:3,town:'shells'},
+ {id:'islote',n:'Islote Calavera',cx:11,cy:31,r:3.8,seed:4,town:'islote'},
+ {id:null,cx:29,cy:6,r:2.2,seed:5},{id:null,cx:33,cy:35,r:2.6,seed:6},{id:null,cx:21,cy:23,r:1.8,seed:7},{id:null,cx:56,cy:19,r:2,seed:8},{id:null,cx:3.5,cy:19,r:1.6,seed:9}
+];
+function islR(I,a){return I.r*(1+.16*Math.sin(3*a+I.seed*1.7)+.09*Math.sin(5*a+I.seed*3.1)+.05*Math.sin(9*a+I.seed))}
+function islD(I,x,y){const dx=x-I.cx,dy=(y-I.cy)*1.2;return Math.hypot(dx,dy)/islR(I,Math.atan2(dy,dx))}
+function landD(x,y){let best=9,bi=null;for(const I of SEA_ISL){if(Math.abs(x-I.cx)>I.r*1.9||Math.abs(y-I.cy)>I.r*1.7)continue;const d=islD(I,x,y);if(d<best){best=d;bi=I}}return[best,bi]}
+const ROCKS=[[17,15],[38,11],[53,25],[26,32],[6,24],[40,37],[35,21],[22,9]];
+const STORM={cx:30,cy:19,rx:7,ry:4.2};
+const ISLANDS_N={villa:'Villa Molino',puerto:'Puerto Gaviota',shells:'Shells Town',islote:'Islote Calavera'};
+const isDeep=(x,y)=>y>=26&&x<30;
+let SEA=null;
+function genSea(){
+  SEA=[];for(let y=0;y<SH;y++){const row=[];for(let x=0;x<SW;x++){
+    const [d,I]=landD(x+.5,y+.5);let t='~',isl=null;
+    if(d<1){t='L';isl=I}
+    else if(ROCKS.some(([a,b])=>a===x&&b===y))t='X';
+    else if(((x+.5-STORM.cx)/STORM.rx)**2+((y+.5-STORM.cy)/STORM.ry)**2<=1)t='s';
+    else if(y===14&&x>=12&&x<=22)t='>';
+    else if(x===27&&y>=25&&y<=32)t='v';
+    row.push({t,isl,d});}SEA.push(row)}
+}
+function seaT(x,y){return x<0||y<0||x>=SW||y>=SH?'X':SEA[y][x].t}
+function seaWalk(x,y){const t=seaT(x,y);return t!=='L'&&t!=='X'}
+function islandAt(x,y){return x<0||y<0||x>=SW||y>=SH?null:SEA[y][x].isl}
+genSea();
+function dockOf(id){const I=SEA_ISL.find(i=>i.id===id);let best=null;for(let y=0;y<SH;y++)for(let x=0;x<SW;x++){if(!seaWalk(x,y))continue;let adj=false;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const i=islandAt(x+dx,y+dy);if(i&&i.id===id)adj=true}if(!adj)continue;const d=Math.hypot(x-I.cx,y-(I.cy+I.r*.8));if(!best||d<best[2])best=[x,y,d]}return best}
+/* ruido suave para texturas */
+function vnoise(x,y,s=0){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi,u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);
+  const a=hash(xi,yi,s),b=hash(xi+1,yi,s),c=hash(xi,yi+1,s),d=hash(xi+1,yi+1,s);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v}
+const mix=(a,b,t)=>a+(b-a)*t;
+function mixC(c1,c2,t){return[mix(c1[0],c2[0],t),mix(c1[1],c2[1],t),mix(c1[2],c2[2],t)]}
+let WORLD=null; // lienzo con el mar y las islas ya dibujados (a media resolución)
+function buildWorld(){
+  if(WORLD)return WORLD;
+  const SC=2,w=SW*TS/SC,h=SH*TS/SC,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+  const im=x.createImageData(w,h),D=im.data,pt=TS/SC;
+  const DEEP=[22,74,128],MID=[35,105,165],SHAL=[70,165,210],FOAM=[236,247,252],WET=[214,190,128],SAND=[236,214,160],GR1=[106,170,78],GR2=[78,140,60],FOR=[52,112,52],ROCK=[136,128,116];
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){
+    const X=i/pt,Y=j/pt,[d,I]=landD(X,Y),n=vnoise(X*1.3,Y*1.3,3),n2=vnoise(X*4,Y*4,5);let col;
+    if(d<1){
+      if(d>.9)col=mixC(SAND,WET,clamp((d-.9)/.1,0,1)*.8);
+      else if(I&&I.town==='islote'&&d<.82)col=mixC(ROCK,GR2,n*.6);
+      else{col=d>.84?mixC(SAND,GR1,(.9-d)/.06):mixC(GR1,GR2,n);if(n2>.62&&d<.72)col=mixC(col,FOR,.7)}
+      const sh=.92+n2*.12;col=[col[0]*sh,col[1]*sh,col[2]*sh];
+    }else{
+      const near=clamp((d-1)/.55,0,1);col=mixC(SHAL,MID,near);
+      const far=clamp((d-1.5)/1.2,0,1);col=mixC(col,DEEP,far);
+      if(isDeep(X,Y))col=mixC(col,[18,52,98],.45);
+      col=mixC(col,[255,255,255],(n-.5)*.08);
+      if(d<1.045)col=mixC(col,FOAM,1-(d-1)/.045);
+    }
+    const k=(j*w+i)*4;D[k]=col[0];D[k+1]=col[1];D[k+2]=col[2];D[k+3]=255;
+  }
+  x.putImageData(im,0,0);
+  const P=(wx,wy)=>[wx*pt,wy*pt];
+  // rocas en el mar
+  ROCKS.forEach(([a,b])=>{const [px,py]=P(a+.5,b+.5);x.fillStyle='rgba(255,255,255,.6)';x.beginPath();x.ellipse(px,py+4,13,6,0,0,7);x.fill();x.fillStyle='#6f6a63';x.beginPath();x.ellipse(px,py,10,8,0,0,7);x.fill();x.fillStyle='#8f8a82';x.beginPath();x.ellipse(px-3,py-3,5,3,0,0,7);x.fill()});
+  // árboles y palmeras (deterministas)
+  for(let j=0;j<h;j+=5)for(let i=0;i<w;i+=5){const X=i/pt,Y=j/pt,[d,I]=landD(X,Y);if(!I||d>=1)continue;const r=hash(i,j,11);
+    if(I.town&&Math.hypot(X-I.cx,Y-I.cy)<I.r*.42)continue;
+    if(d<.8&&r<.16&&I.town!=='islote'){const s=5+hash(i,j,12)*3;x.fillStyle='rgba(0,0,0,.18)';x.beginPath();x.ellipse(i+2,j+4,s,s*.6,0,0,7);x.fill();x.fillStyle='#2f6f30';x.beginPath();x.arc(i,j,s,0,7);x.fill();x.fillStyle='#4f9a45';x.beginPath();x.arc(i-1.5,j-1.5,s*.55,0,7);x.fill()}
+    else if(d>.84&&d<.97&&r<.07){x.strokeStyle='#7a4f28';x.lineWidth=2;x.beginPath();x.moveTo(i,j+6);x.quadraticCurveTo(i+2,j+1,i+1,j-3);x.stroke();x.fillStyle='#3e8d3a';for(let k=0;k<5;k++){const a=k/5*Math.PI*2;x.beginPath();x.ellipse(i+1+Math.cos(a)*4,j-3+Math.sin(a)*2,4,1.6,a,0,7);x.fill()}}}
+  // pueblos y detalles
+  const house=(hx,hy,roof)=>{x.fillStyle='rgba(0,0,0,.2)';x.fillRect(hx-6,hy+2,15,7);x.fillStyle='#e8d6b0';x.fillRect(hx-7,hy-2,14,8);x.fillStyle=roof;x.beginPath();x.moveTo(hx-9,hy-1);x.lineTo(hx,hy-9);x.lineTo(hx+9,hy-1);x.fill();x.fillStyle='#5a3214';x.fillRect(hx-1,hy+2,3,4)};
+  SEA_ISL.forEach(I=>{if(!I.town)return;const [cx,cy]=P(I.cx,I.cy);
+    if(I.town==='villa'){[[-22,-8],[-6,-14],[10,-6],[-14,8],[4,10],[20,6]].forEach(([a,b],k)=>house(cx+a,cy+b,k%2?'#b23a2e':'#c2493a'));
+      x.fillStyle='#d9c7a3';x.fillRect(cx+30,cy-20,8,16);x.strokeStyle='#5a3214';x.lineWidth=2;const t=1;for(let k=0;k<4;k++){const a=k*Math.PI/2+.4;x.beginPath();x.moveTo(cx+34,cy-20);x.lineTo(cx+34+Math.cos(a)*12,cy-20+Math.sin(a)*12);x.stroke()}}
+    if(I.town==='puerto'){[[-18,-10],[0,-14],[16,-8],[-8,6],[12,8]].forEach(([a,b],k)=>house(cx+a,cy+b,k%2?'#3a6ea5':'#b23a2e'));
+      x.fillStyle='#8d5524';x.fillRect(cx+26,cy+6,22,4);x.fillStyle='#6b3f1a';x.beginPath();x.moveTo(cx+28,cy+2);x.lineTo(cx+46,cy+2);x.lineTo(cx+42,cy+8);x.lineTo(cx+32,cy+8);x.fill()}
+    if(I.town==='shells'){x.fillStyle='rgba(0,0,0,.22)';x.fillRect(cx-26,cy-26,56,30);x.fillStyle='#9aa5b1';x.fillRect(cx-28,cy-30,56,30);x.fillStyle='#7b8794';for(let k=0;k<7;k++)x.fillRect(cx-28+k*8,cy-34,5,5);x.fillStyle='#3a6ea5';x.fillRect(cx-28,cy-4,56,3);
+      x.fillStyle='#b8c2cc';x.fillRect(cx+12,cy-46,12,20);x.fillStyle='#3a6ea5';x.fillRect(cx+12,cy-50,12,5);x.strokeStyle='#3b2a14';x.lineWidth=1.5;x.beginPath();x.moveTo(cx+18,cy-50);x.lineTo(cx+18,cy-62);x.stroke();x.fillStyle='#f3f3f3';x.fillRect(cx+18,cy-62,10,6);x.fillStyle='#3a6ea5';x.fillRect(cx+18,cy-60,10,2);
+      [[-30,14],[-12,18],[8,16],[26,14],[-22,30]].forEach(([a,b],k)=>house(cx+a,cy+b,k%2?'#b23a2e':'#c2493a'))}
+    if(I.town==='islote'){x.fillStyle='#7d766c';x.beginPath();x.ellipse(cx,cy-6,22,18,0,0,7);x.fill();x.fillStyle='#958e83';x.beginPath();x.ellipse(cx-5,cy-12,12,8,0,0,7);x.fill();x.fillStyle='#2b241e';x.beginPath();x.ellipse(cx-8,cy-6,5,6,0,0,7);x.ellipse(cx+8,cy-6,5,6,0,0,7);x.fill();x.fillRect(cx-6,cy+6,3,5);x.fillRect(cx,cy+6,3,5);x.fillRect(cx+6,cy+6,3,5)}
+    // muelle hacia su punto de atraque
+    const dk=dockOf(I.id);if(dk){const [dx,dy]=P(dk[0]+.5,dk[1]+.5),ang=Math.atan2(dy-cy,dx-cx),L=Math.hypot(dx-cx,dy-cy);x.save();x.translate(cx,cy);x.rotate(ang);x.fillStyle='#8d5524';x.fillRect(L*.55,-3,L*.42,6);x.fillStyle='#6b3f1a';for(let k=L*.55;k<L*.97;k+=5)x.fillRect(k,-3,1,6);x.restore()}
+  });
+  WORLD=c;return c;
+}
+/* ------------------------------------------------------------------------
+   ISLAS (20 de ancho). . arena , hierba F flores # camino = muelle
+   T árbol Y palmera H casa B muralla R acantilado ~ agua · minúsculas = lugares
+   ------------------------------------------------------------------------ */
+const ISLANDS={
+ villa:{n:'Villa Molino',map:[
+  "~~~~~~~~~~~~~~~~~~~~",
+  "~~~~....,,,,,...~~~~",
+  "~~~..,,T,,,,,T,,.~~~",
+  "~~..,,,,,HHH,,,,,.~~",
+  "~~.,T,,,,HHH,,T,,.~~",
+  "~~.,,,,,,HtH,,,,,.~~",
+  "~~.,,HH,,,#,,,,,,.~~",
+  "~~.,,HH,,,#,,FF,,.~~",
+  "~~.,,Hs####,,FF,T.~~",
+  "~~..,,,,,,#,,,,,..~~",
+  "~~~..,T,,,#,,,T..~~~",
+  "~~~~...,,,#,,,...~~~",
+  "~~~~~~~...#...~~~~~~",
+  "~~~~~~~~==m==~~~~~~~",
+  "~~~~~~~~~~~~~~~~~~~~"],poi:{t:'Taberna',s:'Tienda',m:'Muelle'},
+  npc:[{k:'aldeano',x:14,y:9,l:()=>[['aldeano','¡Luffy! ¿De verdad te vas al mar? ¡Si no sabes nadar!'],['luffy','¡Por eso voy en barco! ¡Shishishi!']]},
+       {k:'abuela',x:4,y:9,l:()=>[['abuela','Cuando era joven vi un Rey Marino tan grande como el pueblo. Ten cuidado en las aguas del sur.']]}]},
+ shells:{n:'Shells Town',map:[
+  "~~~~~~~~~~~~~~~~~~~~",
+  "~..BBBBBBBBBBB....~~",
+  "~..BBBBBBBBBBB.T..~~",
+  "~..BBBBBBBBBBB....~~",
+  "~..BBBBbBBBoBB..T.~~",
+  "~......#...#......~~",
+  "~.T....#####...HH.~~",
+  "~..HHH...#.....HH.~~",
+  "~..HHH...#..FF.Hs.~~",
+  "~..HrH...#..FF....~~",
+  "~........#.....T..~~",
+  "~.,T.....#........~~",
+  "~~.......#......~~~~",
+  "~~~~~~~==m==~~~~~~~~",
+  "~~~~~~~~~~~~~~~~~~~~"],poi:{b:'Patio de la base',o:'Torre de Morgan',r:'Restaurante',s:'Mercado',m:'Muelle'},
+  npc:[{k:'marine',x:5,y:5,l:()=>G.f.arc?[['marine','¡Gracias por librarnos de Morgan! La base es otra desde que os fuisteis... digo, desde que vinisteis.']]:[['marine','Circulen. Aquí no hay nada que ver. Sobre todo en el patio.']]},
+       {k:'aldeano',x:13,y:11,l:()=>[['aldeano','Si os ve el hijo de Morgan, agachad la cabeza. Aquí todo el mundo lo hace...']]}]},
+ puerto:{n:'Puerto Gaviota',map:[
+  "~~~~~~~~~~~~~~~~~~~~",
+  "~~~~.........~~~~~~~",
+  "~~~..,,HHHH,,..~~~~~",
+  "~~..,,,HHaH,,,..~~~~",
+  "~~..,T,,,#,,,T,..~~~",
+  "~~..,,,,,#,,,,,,.~~~",
+  "~~..HH,,,#,,,,Y,.~~~",
+  "~~..Hc####,,,,,,.~~~",
+  "~~...,,,,#,,,,..f==~",
+  "~~~..,,,,#,,,,..~~~~",
+  "~~~~.....#.....~~~~~",
+  "~~~~~~~==m==~~~~~~~~",
+  "~~~~~~~~~~~~~~~~~~~~"],poi:{a:'Astillero',c:'Mercado',f:'Pescador',m:'Muelle'},
+  npc:[{k:'marinerox',x:12,y:5,l:()=>[['marinerox','Las velas reforzadas te salvan la vida en las tormentas. Palabra de marinero.']]}]},
+ islote:{n:'Islote Calavera',map:[
+  "~~~~~~~~~~~~~~~~~~~~",
+  "~~~~~~RRRRRRR~~~~~~~",
+  "~~~~~RRRRqRRRR~~~~~~",
+  "~~~~~R..,#,..R~~~~~~",
+  "~~~~..Y,,#,,Y..~~~~~",
+  "~~~...,,,#,,,,..~~~~",
+  "~~~..e,,,#,,,Y..~~~~",
+  "~~~~...,,#,,....~~~~",
+  "~~~~~~...#...~~~~~~~",
+  "~~~~~~~==m==~~~~~~~~",
+  "~~~~~~~~~~~~~~~~~~~~"],poi:{q:'Cueva',e:'Botella',m:'Muelle'},npc:[]}
+};
+const POI_ICON={t:'🍺',s:'💰',c:'💰',m:'⚓',b:'⛓️',o:'🗼',r:'🍙',a:'🔨',f:'🎣',q:'🕳️',e:'🍾'};
+Object.values(ISLANDS).forEach(I=>{I.map=I.map.map(r=>(r+'~'.repeat(20)).slice(0,20))});
+const IW=20;
+function tileAt(I,x,y){return(I.map[y]||'')[x]||'~'}
+function npcAt(I,x,y){return(I.npc||[]).find(n=>n.x===x&&n.y===y)}
+const islWalk=(I,x,y)=>{const c=tileAt(I,x,y);return(c==='.'||c===','||c==='#'||c==='='||c==='F'||/[a-z]/.test(c))&&!npcAt(I,x,y)};
+
+
+/* ------------------------------------------------------------------------
+   SONIDO · todo sintetizado en el navegador (sin archivos). Música original.
+   ------------------------------------------------------------------------ */
+const AU={ctx:null,master:null,mus:null,fx:null,noise:null,track:null,want:null,step:0,next:0,timer:null,
+  music:true,sfxOn:true};
+try{AU.music=localStorage.getItem('mdl_music')!=='0';AU.sfxOn=localStorage.getItem('mdl_sfx')!=='0'}catch(e){}
+function auInit(){
+  if(AU.ctx||window.SIM)return;const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+  const c=new C();AU.ctx=c;AU.master=c.createGain();AU.master.gain.value=.9;AU.master.connect(c.destination);
+  AU.mus=c.createGain();AU.mus.gain.value=AU.music?.28:0;AU.mus.connect(AU.master);
+  AU.fx=c.createGain();AU.fx.gain.value=AU.sfxOn?.6:0;AU.fx.connect(AU.master);
+  const b=c.createBuffer(1,c.sampleRate,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;AU.noise=b;
+  if(AU.want)playMusic(AU.want,true);
+}
+addEventListener('pointerdown',()=>{auInit();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume()},{passive:true});
+addEventListener('keydown',()=>{auInit();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume()});
+const NOTE={C:0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11};
+function nf(n){const m=n.match(/^([A-G][#b]?)(\d)$/);return 440*Math.pow(2,(NOTE[m[1]]+(+m[2]+1)*12-69)/12)}
+function tone(f,dur,type='square',vol=.2,when=0,slide=null,dest){
+  const c=AU.ctx;if(!c)return;const t=(when||c.currentTime),o=c.createOscillator(),g=c.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(20,slide),t+dur);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0008,t+dur);
+  o.connect(g);g.connect(dest||AU.fx);o.start(t);o.stop(t+dur+.02);
+}
+function noise(dur,vol=.3,ftype='bandpass',freq=1000,when=0,dest,q=1){
+  const c=AU.ctx;if(!c)return;const t=(when||c.currentTime),src=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
+  src.buffer=AU.noise;f.type=ftype;f.frequency.value=freq;f.Q.value=q;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0008,t+dur);
+  src.connect(f);f.connect(g);g.connect(dest||AU.fx);src.start(t,Math.random()*.5);src.stop(t+dur+.02);
+}
+const SFX={
+  hit:t=>{noise(.09,.55,'bandpass',900,t);tone(190,.13,'square',.22,t,60)},
+  crit:t=>{SFX.hit(t);tone(1320,.09,'square',.14,t+.05);tone(1760,.12,'square',.12,t+.11)},
+  slash:t=>{noise(.16,.45,'highpass',2600,t);tone(950,.1,'sawtooth',.08,t,260)},
+  shot:t=>{noise(.14,.6,'lowpass',1600,t);noise(.04,.5,'highpass',5000,t)},
+  boing:t=>{tone(260,.12,'sine',.3,t,820);tone(820,.16,'sine',.25,t+.12,240)},
+  stretch:t=>{tone(200,.25,'square',.12,t,700)},
+  heal:t=>{['C5','E5','G5','C6'].forEach((n,i)=>tone(nf(n),.16,'triangle',.22,t+i*.06))},
+  buff:t=>{tone(320,.28,'square',.12,t,980);tone(640,.2,'triangle',.1,t+.08,1300)},
+  debuff:t=>{tone(700,.3,'sawtooth',.1,t,180)},
+  coin:t=>{tone(nf('B5'),.08,'square',.14,t);tone(nf('E6'),.22,'square',.14,t+.08)},
+  click:t=>{tone(1100,.035,'square',.07,t)},
+  blip:t=>{tone(620+Math.random()*80,.025,'square',.035,t)},
+  alert:t=>{tone(nf('A5'),.08,'square',.15,t);tone(nf('D6'),.16,'square',.15,t+.09)},
+  levelup:t=>{['C5','E5','G5','C6','E6','G6'].forEach((n,i)=>tone(nf(n),.14,'square',.11,t+i*.07))},
+  victory:t=>{[['G4',.12],['C5',.12],['E5',.12],['G5',.3],['E5',.12],['G5',.6]].reduce((acc,[n,d])=>{tone(nf(n),d+.05,'square',.13,t+acc);tone(nf(n)/2,d+.05,'triangle',.18,t+acc);return acc+d},0)},
+  defeat:t=>{[['E4',.25],['D4',.25],['C4',.25],['B3',.8]].reduce((acc,[n,d])=>{tone(nf(n),d,'triangle',.22,t+acc);return acc+d},0)},
+  thunder:t=>{noise(1.8,.8,'lowpass',260,t);noise(.25,.4,'bandpass',900,t)},
+  splash:t=>{noise(.35,.08,'bandpass',700,t,null,.7)},
+  step:t=>{noise(.04,.05,'lowpass',600,t)},
+  door:t=>{tone(330,.08,'square',.08,t);tone(495,.12,'square',.08,t+.07)}
+};
+function sfx(name){if(window.SIM||!AU.ctx||!AU.sfxOn)return;try{SFX[name]&&SFX[name](AU.ctx.currentTime)}catch(e){}}
+/* --- música: secuenciador sencillo. Notación "Nota/duración" en corcheas, "-" silencio --- */
+function seq(str){const out=[];let st=0;str.split(/\s+/).filter(Boolean).forEach(tok=>{if(tok==='|')return;const [n,d]=tok.split('/');const len=+(d||1);if(n!=='-')out.push([st,n,len]);st+=len});return{notes:out,len:st}}
+const SONGS={
+ sea:{bpm:200,lead:'D4/2 A4 A4/2 G4 F4/2 E4 D4/3 | C4/2 E4 G4/2 A4 G4/2 F4 E4/3 | D4/2 A4 A4/2 G4 F4/2 G4 A4/3 | C5/2 A4 G4/2 E4 D4/6 | F4/2 G4 A4/2 C5 D5/3 C5/3 | A4/2 G4 F4/2 E4 F4/6 | G4/2 A4 Bb4/2 A4 G4/2 F4 E4/3 | F4/2 E4 D4/9',
+   bass:'D3/6 A2/6 | C3/6 G2/6 | D3/6 A2/6 | A2/6 D3/6 | Bb2/6 F3/6 | C3/6 F2/6 | G2/6 C3/6 | D3/6 A2/6',drums:'k--h--s--h--',leadType:'triangle',leadVol:.16},
+ island:{bpm:236,lead:'E5 G5 C6/2 G5 E5 D5/2 | C5 D5 E5 G5 A5/2 G5/2 | F5 A5 C6/2 A5 F5 E5/2 | D5 E5 F5 D5 G5/4 | E5 G5 C6/2 D6 C6 B5/2 | A5 B5 C6 A5 G5/4 | F5 E5 D5/2 G5 F5 E5/2 | D5 B4 D5 G5 C5/4',
+   bass:'C3/2 G3/2 C3/2 G3/2 | A2/2 E3/2 A2/2 E3/2 | F2/2 C3/2 F2/2 C3/2 | G2/2 D3/2 G2/2 B2/2 | C3/2 G3/2 E3/2 G3/2 | F2/2 C3/2 F2/2 A2/2 | D3/2 A2/2 G2/2 D3/2 | G2/2 B2/2 C3/4',drums:'k-h-s-h-',leadType:'square',leadVol:.09},
+ battle:{bpm:300,lead:'A4 A4 C5 A4 E5/2 D5 C5 | B4 B4 D5 B4 E5/2 G#4/2 | A4 A4 C5 A4 F5/2 E5 D5 | E5 D5 C5 B4 A4/4 | C5 E5 A5/2 G5 F5 E5/2 | D5 F5 A5/2 G5 E5 C5/2 | B4 D5 G5/2 F5 E5 D5/2 | E5/2 G#4/2 B4/2 E5/2',
+   bass:'A2 A2 A3 A2 A2 A2 A3 A2 | E2 E2 E3 E2 E2 E2 E3 E2 | F2 F2 F3 F2 F2 F2 F3 F2 | E2 E2 E3 E2 E2 E2 G#2 E2 | A2 A2 A3 A2 A2 A2 A3 A2 | D2 D2 D3 D2 D2 D2 D3 D2 | G2 G2 G3 G2 G2 G2 G3 G2 | E2 E2 E3 E2 E2 E2 E3 E2',drums:'k-hsk-hs',leadType:'square',leadVol:.09},
+ boss:{bpm:320,lead:'E4/2 F4 E4 G4/2 F4 E4 | E4/2 F4 E4 B4/2 A4 G4 | C5/2 B4 A4 G4/2 F4 E4 | F4 E4 D#4 E4 E5/4 | E5/2 D5 C5 B4/2 C5 D5 | E5/2 F5 E5 D5/4 | C5/2 B4 A4 B4/2 G4 F4 | E4 F4 G4 F4 E4/4',
+   bass:'E2 E2 E2 E2 E2 E2 F2 E2 | E2 E2 E2 E2 E2 E2 F2 E2 | A1 A1 A1 A1 A1 A1 B1 A1 | C2 C2 C2 C2 B1 B1 B1 B1 | E2 E2 E2 E2 E2 E2 F2 E2 | D2 D2 D2 D2 D2 D2 E2 D2 | A1 A1 A1 A1 A1 A1 B1 A1 | B1 B1 B1 B1 B1 B1 D#2 B1',drums:'k-skk-s-',leadType:'sawtooth',leadVol:.07}
+};
+Object.values(SONGS).forEach(S=>{S.L=seq(S.lead);S.B=seq(S.bass);S.len=Math.max(S.L.len,S.B.len)});
+function playMusic(name,force){
+  AU.want=name;if(!AU.ctx||window.SIM)return;if(AU.track===name&&!force)return;
+  AU.track=name;AU.step=0;AU.next=AU.ctx.currentTime+.08;
+  if(!AU.timer)AU.timer=setInterval(schedMusic,30);
+}
+function stopMusic(){AU.track=null;AU.want=null}
+function schedMusic(){
+  const c=AU.ctx;if(!c||!AU.track)return;const S=SONGS[AU.track],dt=60/S.bpm;
+  while(AU.next<c.currentTime+.15){
+    const st=AU.step%S.len,t=AU.next;
+    if(AU.music){
+      S.L.notes.forEach(([s0,n,l])=>{if(s0===st){tone(nf(n),l*dt*.92,S.leadType,S.leadVol,t,null,AU.mus);tone(nf(n)*1.005,l*dt*.9,S.leadType,S.leadVol*.35,t+.01,null,AU.mus)}});
+      S.B.notes.forEach(([s0,n,l])=>{if(s0===st)tone(nf(n),l*dt*.85,'triangle',.26,t,null,AU.mus)});
+      const dch=S.drums[st%S.drums.length];
+      if(dch==='k')tone(120,.12,'sine',.5,t,40,AU.mus);
+      if(dch==='s')noise(.09,.25,'bandpass',1800,t,AU.mus);
+      if(dch==='h')noise(.03,.08,'highpass',7000,t,AU.mus);
+    }
+    AU.next+=dt;AU.step++;
+  }
+}
+function setMusic(on){AU.music=on;try{localStorage.setItem('mdl_music',on?'1':'0')}catch(e){};if(AU.mus)AU.mus.gain.value=on?.28:0}
+function setSfx(on){AU.sfxOn=on;try{localStorage.setItem('mdl_sfx',on?'1':'0')}catch(e){};if(AU.fx)AU.fx.gain.value=on?.6:0}
+let TXTSPD=2;try{TXTSPD=+(localStorage.getItem('mdl_txt')||2)}catch(e){}
+
+/* ------------------------------------------------------------------------
+   ESTADO Y GUARDADO
+   ------------------------------------------------------------------------ */
+let G=null,OUT=[];
+function newMember(key,lv=1){const m={key,lv,xp:0,sp:0,skills:[...CHARS[key].start],eq:{arma:null,ropa:null,acc:null}};m.hp=stat(m,'hp');m.pe=stat(m,'pe');return m}
+function newGame(){
+  G={v:7,crew:[newMember('luffy')],berries:50,bounty:0,fama:0,items:{carne:2,medicina:1},bag:[],rares:[],upg:[],
+     ship:{casco:40,cascoMax:40},sea:{x:10,y:5,seen:[],steps:0,face:1},mode:'island',isl:{id:'villa',x:10,y:12,face:1},lastIsl:'villa',
+     f:{},bond:0,quest:'Habla con la gente de Villa Molino y prepárate para zarpar.'};
+  const d=dockOf('villa');G.sea.x=d[0];G.sea.y=d[1];reveal(G.sea.x,G.sea.y,4);
+}
+function save(){try{localStorage.setItem('mdl_save',JSON.stringify(G))}catch(e){}}
+function loadSave(){try{const s=JSON.parse(localStorage.getItem('mdl_save')||'null');if(!s)return null;
+  if(s.v===6){ // partida de la versión anterior: nuevo mar, sin comida ni agua
+    s.v=7;delete s.ship.comida;delete s.ship.agua;delete s.ship.cap;s.upg=(s.upg||[]).filter(u=>u!=='bodega');s.sea={x:0,y:0,seen:[],steps:0,face:1};
+    const d=dockOf(s.lastIsl||'villa');s.sea.x=d[0];s.sea.y=d[1];const G0=G;G=s;reveal(d[0],d[1],4);if(s.f.knowShells&&s.f.coby)reveal(46,33,4);G=G0}
+  return s.v===7?s:null}catch(e){return null}}
+function has(k){return G.crew.some(m=>m.key===k)}
+function stat(m,s){
+  const c=CHARS[m.key];let v=s==='pe'?c.pe+Math.floor((m.lv-1)/2):Math.round(c[s]+(c.g[s]||0)*(m.lv-1));
+  for(const sl of ['arma','ropa','acc']){const e=EQUIP[m.eq?.[sl]];if(e&&e[s])v+=e[s]}
+  if(G){if(s==='hp'&&G.rares.includes('perla'))v+=10;if(s==='atk'&&G.rares.includes('diente'))v+=2}
+  return Math.max(1,v);
+}
+function xpNext(lv){return 15+lv*12}
+function say(t,who='narr'){OUT.push([who,t])}
+function fama(d){G.fama=clamp(G.fama+d,-10,10);if(d)say(d>0?`Fama +${d}: la gente empieza a hablar bien de vosotros. 😇`:`Fama ${d}: vuestro nombre empieza a dar miedo. 😈`)}
+function gainItem(k,n=1){G.items[k]=(G.items[k]||0)+n}
+function gainEq(k){G.bag.push(k)}
+function gainRare(k){if(!G.rares.includes(k)){G.rares.push(k);say(`💎 Tesoro raro: ${RARES[k].n}. ${RARES[k].d}.`)}}
+function healParty(p){G.crew.forEach(m=>{m.hp=Math.min(stat(m,'hp'),m.hp+Math.ceil(stat(m,'hp')*p));m.pe=stat(m,'pe')})}
+function toast(t){const d=document.createElement('div');d.className='toast perg';d.innerHTML=t;stage.appendChild(d);setTimeout(()=>d.remove(),2300)}
+function quest(t){G.quest=t}
+
+/* ------------------------------------------------------------------------
+   HUD Y BITÁCORA
+   ------------------------------------------------------------------------ */
+function hud(){
+  const s=G.ship,lo=v=>v<=3?'low':'';
+  return `<div class="hud perg"><div class="crewbar">${G.crew.map(m=>`<div class="port"><div class="ring">${img(m.key,44)}</div><div class="mini"><i style="width:${100*m.hp/stat(m,'hp')}%"></i></div></div>`).join('')}</div>
+   <div class="hudmid">${G.mode==='sea'?`<span class="${s.casco<=10?'low':''}">🛶 Casco ${s.casco}/${s.cascoMax}</span>`:''}</div>
+   <span class="num">💰 ${G.berries}</span><span class="num">☠️ ${G.bounty}${G.fama<=-4?' 😈':G.fama>=4?' 😇':''}</span>
+   <button class="ico menubtn" onclick="openMenu()">☰ Menú</button></div>`;
+}
+function refreshHud(){const h=stage.querySelector('.hud');if(h&&G)h.outerHTML=hud()}
+let BT={tab:'crew',sel:0};
+function bitTab(){
+  const m=G.crew[BT.sel]||G.crew[0];
+  const who=`<div class="tabs">${G.crew.map((c,i)=>`<button class="${c===m?'on':''}" onclick="BT.sel=${i};bitacora()">${CHARS[c.key].n}</button>`).join('')}</div>`;
+  if(BT.tab==='crew'){const c=CHARS[m.key];
+    return who+`<div class="cols"><div class="pick">${img(m.key,128)}<div><h3>${c.n} · Nv ${m.lv}${c.guest?' (invitado)':''}</h3><div class="muted">XP ${m.xp}/${xpNext(m.lv)}</div>
+     <div class="num">❤️ ${m.hp}/${stat(m,'hp')} · 🔷 ${m.pe}/${stat(m,'pe')}<br>⚔️ ${stat(m,'atk')} · 🛡️ ${stat(m,'def')} · 💨 ${stat(m,'spd')}</div>${c.fruit?`<div class="muted">🍇 ${c.fruit}</div>`:''}</div></div>
+     <div><h3>Equipo</h3>${['arma','ropa','acc'].map(sl=>`<div class="slot"><span>${SLOT_TXT[sl]}: <b>${m.eq[sl]?EQUIP[m.eq[sl]].n:'—'}</b></span><button class="ico" style="font-size:16px" onclick="equipMenu('${sl}')">Cambiar</button></div>`).join('')}
+     ${m.key==='luffy'||m.key==='zoro'?`<p style="margin-top:8px">🤝 Vínculo Luffy–Zoro: ${'★'.repeat(Math.floor(G.bond))}${'☆'.repeat(Math.max(0,5-Math.floor(G.bond)))}<br><span class="muted">${G.bond>=3?'¡Ataque combinado disponible!':'Con 3★ se desbloquea un ataque combinado'}</span></p>`:''}</div></div>`}
+  if(BT.tab==='tec'){const c=CHARS[m.key];
+    return who+`<p>Puntos de técnica: <b>${m.sp}</b> <span class="muted">(1 por nivel)</span></p><div class="cols">`+c.skills.map(s=>{
+      const known=m.skills.includes(s.id),can=!known&&!s.lock&&m.sp>0&&(!s.req||m.skills.includes(s.req));
+      return `<div class="sk ${s.lock?'lock':''}"><b>${s.n}</b> ${s.pe?`<span class="num">${s.pe} PE</span>`:''}<br><span class="muted">${s.d}${s.req&&!known?` · requiere ${c.skills.find(x=>x.id===s.req).n}`:''}</span>
+        ${known?'<div>✔ Aprendida</div>':s.lock?'<div>🔒 Bloqueada</div>':`<button class="plain" style="margin-top:4px" ${can?'':'disabled'} onclick="learn('${s.id}')">Aprender (1 punto)</button>`}</div>`}).join('')+'</div>'}
+  if(BT.tab==='inv'){const it=Object.keys(G.items).filter(k=>G.items[k]>0);
+    return `<div class="cols"><div><h3>Consumibles</h3>${it.map(k=>`<div class="slot"><span>${ITEMS[k].n} ×${G.items[k]}<br><span class="muted">${ITEMS[k].d}</span></span>${ITEMS[k].heal?`<button class="ico" style="font-size:16px" onclick="useOutside('${k}')">Usar</button>`:''}</div>`).join('')||'<p class="muted">Nada</p>'}</div>
+     <div><h3>Equipo guardado</h3>${G.bag.map(k=>`<div class="slot"><span>${EQUIP[k].n}<br><span class="muted">${SLOT_TXT[EQUIP[k].s]}: ${eqTxt(EQUIP[k])}</span></span></div>`).join('')||'<p class="muted">Nada</p>'}</div></div>`}
+  if(BT.tab==='barco'){const s=G.ship;return `<p class="num">🛶 Casco ${s.casco}/${s.cascoMax}</p><p class="muted">Las tormentas dañan el casco; si llega a 0, naufragáis. Se repara en el astillero de Puerto Gaviota. Los barcos enemigos y las aletas de Rey Marino se ven en el mapa: si os ven, os persiguen, pero son algo más lentos que vosotros.</p>
+     <h3>Mejoras</h3>${Object.keys(UPG).map(k=>`<p>${G.upg.includes(k)?'✔':'✗'} <b>${UPG[k].n}</b>: <span class="muted">${UPG[k].d}</span></p>`).join('')}`}
+  if(BT.tab==='tes')return Object.keys(RARES).map(k=>G.rares.includes(k)?`<p>💎 <b>${RARES[k].n}</b>: <span class="muted">${RARES[k].d}</span></p>`:`<p class="lock">💎 ??? <span class="muted">(sin descubrir)</span></p>`).join('')+`<p class="muted" style="margin-top:6px">Fama: ${G.fama>=4?'😇 Queridos':G.fama<=-4?'😈 Temidos':'😐 Desconocidos'} (${G.fama})</p>`;
+  if(BT.tab==='diario')return `<h3>Objetivo</h3><p>${G.quest}</p><p class="muted" style="margin-top:8px">La partida se guarda sola en este navegador.</p><button class="plain" style="margin-top:8px;width:auto" onclick="if(window.confirmReset){localStorage.removeItem('mdl_save');location.reload()}else{window.confirmReset=1;this.textContent='Toca otra vez para BORRAR la partida'}">Borrar partida</button>`;
+}
+function eqTxt(e){return ['hp','atk','def','spd'].filter(s=>e[s]).map(s=>`${e[s]>0?'+':''}${e[s]} ${{hp:'vida',atk:'ataque',def:'defensa',spd:'velocidad'}[s]}`).join(', ')}
+function equipMenu(sl){
+  const m=G.crew[BT.sel]||G.crew[0],ok=k=>{const e=EQUIP[k];return e.s===sl&&(!e.only||e.only.includes(m.key))&&(!e.not||!e.not.includes(m.key))};
+  const opts=G.bag.map((k,i)=>({k,i})).filter(o=>ok(o.k));
+  document.getElementById('mbody').innerHTML=`<h3>${SLOT_TXT[sl]} de ${CHARS[m.key].n}</h3>${opts.map(o=>`<button style="margin-top:5px" onclick="doEquip('${sl}',${o.i})">${EQUIP[o.k].n}<small>${eqTxt(EQUIP[o.k])}</small></button>`).join('')||'<p class="muted">No tienes nada que encaje.</p>'}
+   ${m.eq[sl]?`<button class="plain" style="margin-top:5px" onclick="doEquip('${sl}',-1)">Quitar ${EQUIP[m.eq[sl]].n}</button>`:''}<button class="plain" style="margin-top:5px" onclick="bitacora()">Volver</button>`;
+}
+function doEquip(sl,i){const m=G.crew[BT.sel]||G.crew[0];const old=m.eq[sl];if(i>=0){m.eq[sl]=G.bag.splice(i,1)[0]}else m.eq[sl]=null;if(old)G.bag.push(old);m.hp=Math.min(m.hp,stat(m,'hp'));save();sfx('coin');bitacora();refreshHud()}
+function learn(id){const m=G.crew[BT.sel]||G.crew[0];if(m.sp<1)return;m.sp--;m.skills.push(id);save();sfx('levelup');bitacora()}
+function useOutside(k){const it=ITEMS[k];if(!G.items[k])return;G.items[k]--;if(it.t==='party')G.crew.forEach(m=>m.hp=Math.min(stat(m,'hp'),m.hp+it.heal));else{const m=G.crew.reduce((a,b)=>a.hp/stat(a,'hp')<b.hp/stat(b,'hp')?a:b);m.hp=Math.min(stat(m,'hp'),m.hp+it.heal);toast(`${CHARS[m.key].n} se cura.`)}save();bitacora();refreshHud()}
+
+
+/* ------------------------------------------------------------------------
+   MENÚ DE PAUSA (☰ o tecla Esc / M). Flechas + Enter en ordenador.
+   ------------------------------------------------------------------------ */
+const MENU_ITEMS=[
+ ['crew','👥','Tripulación'],['tec','✨','Técnicas'],['inv','🎒','Inventario'],['quests','📜','Misiones'],['map','🗺️','Mapa'],
+ ['tes','💎','Tesoros'],['barco','⛵','Barco'],['save','💾','Guardar'],['opts','⚙️','Opciones'],['title','🏠','Salir al título']];
+let PM={open:false,sel:0,view:null};
+function openMenu(){if(!G)return;if(PM.open)return closeMenu();sfx('click');PM.open=true;PM.view=null;drawMenuUI()}
+function closeMenu(){PM.open=false;PM.view=null;['pov','pmenu','pdetail','bitmodal'].forEach(id=>{const e=document.getElementById(id);if(e)e.remove()})}
+function drawMenuUI(){
+  ['pov','pmenu','pdetail'].forEach(id=>{const e=document.getElementById(id);if(e)e.remove()});if(!PM.open)return;
+  const ov=document.createElement('div');ov.id='pov';ov.className='pov';ov.onclick=closeMenu;stage.appendChild(ov);
+  const m=document.createElement('div');m.id='pmenu';m.className='pmenu perg';
+  m.innerHTML=MENU_ITEMS.map(([k,ic,n],i)=>`<button class="${PM.sel===i?'sel':''}" onclick="menuPick(${i})" ${menuOff(k)?'disabled':''}><span class="ic">${ic}</span>${n}</button>`).join('');
+  stage.appendChild(m);
+  if(PM.view){const d=document.createElement('div');d.id='pdetail';d.className='pdetail perg';d.innerHTML=menuView(PM.view);stage.appendChild(d);if(PM.view==='map')drawBigMap()}
+}
+function menuOff(k){return(B&&(k==='save'||k==='title'))||(k==='map'&&!G.sea)}
+function menuPick(i){const k=MENU_ITEMS[i][0];if(menuOff(k))return;PM.sel=i;sfx('click');
+  if(k==='close')return closeMenu();
+  if(k==='title'){if(PM.view==='title'){closeMenu();save();renderTitle();return}PM.view='title';return drawMenuUI()}
+  if(k==='save'){save();PM.view='save';drawMenuUI();toast('💾 Partida guardada');return}
+  PM.view=k;BT.tab=k;drawMenuUI()}
+function menuView(k){
+  if(['crew','tec','inv','barco','tes'].includes(k))return `<h2>${MENU_ITEMS.find(m=>m[0]===k)[2]}</h2><div id="mbody">${bitTab()}</div>`;
+  if(k==='quests')return questsView();
+  if(k==='map')return `<h2>Carta náutica</h2><canvas id="bigmap" width="540" height="360" style="width:100%;border:2px solid var(--tinta)"></canvas><p class="muted">⛵ Tu barca · ✕ destinos conocidos. Los barcos enemigos solo se ven de cerca.</p>`;
+  if(k==='save'){let code='';try{code=btoa(unescape(encodeURIComponent(JSON.stringify(G))))}catch(e){}
+    return `<h2>Guardar</h2><p>✔ Partida guardada en este navegador. El juego también guarda solo cada vez que cambias de zona.</p>
+     <h3 style="margin-top:12px">Pasar la partida a otro dispositivo</h3><p class="muted">Copia este código y pégalo en el otro dispositivo, en «Importar».</p>
+     <textarea class="code" id="expcode" readonly>${code}</textarea><button class="plain" style="margin-top:6px" onclick="copyCode()">📋 Copiar código</button>
+     <h3 style="margin-top:12px">Importar partida</h3><textarea class="code" id="impcode" placeholder="Pega aquí el código"></textarea><button class="plain" style="margin-top:6px" onclick="importCode()">📥 Cargar este código</button>`}
+  if(k==='opts')return `<h2>Opciones</h2>
+     <div class="opt"><span>🎵 Música</span><div class="sw"><button class="${AU.music?'on':''}" onclick="setMusic(true);drawMenuUI()">Sí</button><button class="${AU.music?'':'on'}" onclick="setMusic(false);drawMenuUI()">No</button></div></div>
+     <div class="opt"><span>🔊 Efectos de sonido</span><div class="sw"><button class="${AU.sfxOn?'on':''}" onclick="setSfx(true);sfx('coin');drawMenuUI()">Sí</button><button class="${AU.sfxOn?'':'on'}" onclick="setSfx(false);drawMenuUI()">No</button></div></div>
+     <div class="opt"><span>💬 Velocidad del texto</span><div class="sw">${[[1,'Lenta'],[2,'Normal'],[5,'Rápida']].map(([v,n])=>`<button class="${TXTSPD===v?'on':''}" onclick="TXTSPD=${v};try{localStorage.setItem('mdl_txt',${v})}catch(e){};drawMenuUI()">${n}</button>`).join('')}</div></div>
+     <div class="opt"><span>⌨️ En ordenador</span><span class="muted">Esc o M: menú · flechas + Enter: elegir · Espacio: pasar diálogo</span></div>
+     <div class="opt"><span>🗑️ Borrar partida</span><button class="plain" style="width:auto" onclick="if(window.confirmReset){localStorage.removeItem('mdl_save');location.reload()}else{window.confirmReset=1;this.textContent='Toca otra vez para BORRAR'}">Borrar</button></div>`;
+  if(k==='title')return `<h2>¿Salir al título?</h2><p>La partida se guarda antes de salir.</p><p class="muted">Vuelve a pulsar «Salir al título» para confirmar.</p>`;
+  return '';
+}
+function copyCode(){const t=document.getElementById('expcode');try{navigator.clipboard.writeText(t.value).then(()=>toast('📋 Código copiado'),()=>{t.select();toast('Selecciona y copia el texto')})}catch(e){t.select()}}
+function importCode(){const v=(document.getElementById('impcode').value||'').trim();try{const s=JSON.parse(decodeURIComponent(escape(atob(v))));if(!s||!s.crew)throw 0;localStorage.setItem('mdl_save',JSON.stringify(s));const L=loadSave();if(!L)throw 0;G=L;closeMenu();toast('📥 Partida cargada');back()}catch(e){toast('❌ Ese código no es válido')}}
+function questsView(){
+  const f=G.f,step=(ok,t)=>`<div class="qrow ${ok?'done':''}"><span class="ck">${ok?'✅':'⬜'}</span><span class="t">${t}</span></div>`;
+  const side=[[f.puertoArr,'Las redes del pescador','Puerto Gaviota',f.pesca],[f.isloteArr,'El brillo de la cueva','Islote Calavera',f.cueva],[f.isloteArr,'La botella misteriosa','Islote Calavera',f.botella],[f.puertoArr,'Mejora tu barca en el astillero','Puerto Gaviota',G.upg.length>0]];
+  return `<h2>Misiones</h2><div class="qrow"><span class="ck">🧭</span><span><b>Ahora:</b> ${G.quest}</span></div>
+   <h3 style="margin-top:10px">Arco 1 · Shells Town</h3>
+   ${step(f.provisiones,'Pasa por la taberna de Villa Molino')}${step(f.coby,'Rescata a Coby en alta mar')}${step(f.shellsArr,'Llega a Shells Town')}
+   ${step(f.rumor,'Pregunta en el restaurante')}${step(f.stage>=2,'Conoce al cazador de piratas en el patio')}${step(has('zoro'),'Recupera las espadas de Zoro')}${step(f.arc,'Derrota al capitán Morgan')}
+   <h3 style="margin-top:10px">Secundarias</h3>${side.map(([known,t,w,d])=>known?step(d,`${t} <span class="muted">· ${w}</span>`):`<div class="qrow"><span class="ck">❔</span><span class="muted">??? · explora el mar para descubrirla</span></div>`).join('')}`;
+}
+function drawBigMap(){const c=document.getElementById('bigmap');if(!c)return;const x=c.getContext('2d');x.imageSmoothingEnabled=true;SEEN=new Set(G.sea.seen||[]);x.drawImage(buildWorld(),0,0,540,360);x.drawImage(buildFog(),0,0,540,360);
+  const sx=540/SW,sy=360/SH;SEA_ISL.forEach(I=>{if(!I.id)return;const known=SEEN.has(Math.round(I.cx)+','+Math.round(I.cy))||SEEN.has(Math.round(I.cx)+','+Math.round(I.cy+I.r*.6));if(known){x.font='bold 15px "Baloo 2",sans-serif';x.textAlign='center';x.lineWidth=4;x.strokeStyle='#1b120b';x.strokeText(I.n,I.cx*sx,(I.cy-I.r)*sy);x.fillStyle='#ffe8a3';x.fillText(I.n,I.cx*sx,(I.cy-I.r)*sy)}
+    else if(I.id==='shells'&&G.f.knowShells){x.fillStyle='#9b2226';x.font='bold 26px serif';x.textAlign='center';x.fillText('✕',I.cx*sx,I.cy*sy)}});
+  x.fillStyle='#9b2226';x.beginPath();x.arc((G.sea.x+.5)*sx,(G.sea.y+.5)*sy,6,0,7);x.fill();x.strokeStyle='#fff';x.lineWidth=2;x.stroke()}
+function bitacora(tab){if(tab)BT.tab=tab;const i=MENU_ITEMS.findIndex(m=>m[0]===BT.tab);PM.open=true;PM.sel=i<0?0:i;PM.view=BT.tab;drawMenuUI()}
+addEventListener('keydown',e=>{
+  if(!G)return;const k=e.key;
+  if(k==='Escape'||k==='m'||k==='M'){if(PM.open)closeMenu();else if(stage.querySelector('.hud'))openMenu();e.preventDefault();return}
+  if(PM.open){if(k==='ArrowDown'){PM.sel=(PM.sel+1)%MENU_ITEMS.length;drawMenuUI();e.preventDefault()}else if(k==='ArrowUp'){PM.sel=(PM.sel+MENU_ITEMS.length-1)%MENU_ITEMS.length;drawMenuUI();e.preventDefault()}else if(k==='Enter'){menuPick(PM.sel);e.preventDefault()}return}
+  if((k===' '||k==='Enter')&&SC&&document.getElementById('dlg')){if(SC.i<SC.lines.length||TYPE){advance();e.preventDefault()}}
+});
+
+/* ------------------------------------------------------------------------
+   MOTOR DE ESCENAS (novela visual, horizontal)
+   ------------------------------------------------------------------------ */
+let SC=null,TYPE=null;
+const NAMES={narr:'',tabernera:'Tabernera',mercader:'Mercader',duena:'Dueña del restaurante',nina:'Niña',carpintero:'Carpintero',pescador:'Pescador',bucanero:'Bucanero',marine:'Marine',fusilero:'Fusilero',helmeppo:'Helmeppo',morgan:'Capitán Morgan',zoro:'Zoro',coby:'Coby',luffy:'Luffy',reymarino:'Rey Marino',aldeano:'Aldeano',abuela:'Abuela',marinerox:'Marinero',cangrejo:'Cangrejo'};
+function partyKeys(){return G.crew.map(m=>m.key)}
+function stopMaps(){LOOP=null}
+function scene(o){
+  stopMaps();
+  SC={bg:o.bg||'mar',place:o.place||'',L:[...(o.left||partyKeys())],Rt:[...(o.right||[])],lines:o.lines||[],choices:o.choices||null,next:o.next||back,i:0,btn:o.btn};
+  stage.innerHTML=`<div class="vnbg" style="${bgStyle(SC.bg)}"></div>${hud()}${SC.place?`<div class="place perg">${SC.place}</div>`:''}<div class="cast l" id="castL"></div><div class="cast r" id="castR"></div>
+    <div class="choices" id="choices"></div><div class="dlg perg" id="dlg" onclick="advance()"><div class="who" id="who" style="display:none"></div><div class="txt" id="txt"></div><div class="tri" id="tri">▼</div></div>`;
+  drawCast(null,true);playLine();
+}
+function drawCast(spk,first){
+  const tot=Math.min(3,SC.L.length)+Math.min(3,SC.Rt.length),sz=tot<=2?240:tot<=4?200:170;
+  const mk=(arr,id)=>{document.getElementById(id).innerHTML=arr.slice(0,3).map(k=>`<div class="ch ${k===spk||(!spk&&first)?'on':''} ${first?'enter':''}">${img(k,sz)}</div>`).join('')};
+  mk(SC.L,'castL');mk(SC.Rt,'castR');
+}
+function playLine(){
+  const ch=document.getElementById('choices');ch.innerHTML='';
+  if(SC.i>=SC.lines.length)return showChoices();
+  const [w,t]=SC.lines[SC.i];
+  if(w!=='narr'&&!SC.L.includes(w)&&!SC.Rt.includes(w)){(has(w)?SC.L:SC.Rt).push(w);drawCast(w,false)}else drawCast(w==='narr'?'__':w,false);
+  const who=document.getElementById('who'),tx=document.getElementById('txt');
+  who.style.display=w==='narr'?'none':'block';who.textContent=NAMES[w]||w;
+  tx.className='txt'+(w==='narr'?' narr':'');document.getElementById('tri').style.display='block';
+  clearInterval(TYPE);TYPE=null;SC.full=t;
+  if(window.SIM){tx.innerHTML=t;return}
+  let n=0;tx.innerHTML='';TYPE=setInterval(()=>{n+=TXTSPD;tx.innerHTML=t.slice(0,n);if(n%6<TXTSPD)sfx('blip');if(n>=t.length){clearInterval(TYPE);TYPE=null}},16);
+}
+function advance(){if(!SC)return;if(TYPE){clearInterval(TYPE);TYPE=null;document.getElementById('txt').innerHTML=SC.full;return}if(SC.i<SC.lines.length){SC.i++;playLine()}}
+function showChoices(){document.getElementById('tri').style.display='none';const ch=document.getElementById('choices');
+  if(SC.choices&&SC.choices.length){ch.className='choices';ch.innerHTML=optButtons(SC.choices)}
+  else{ch.className='choices';ch.innerHTML=`<button class="primary" onclick="sceneNext()">${SC.btn||'Continuar'}</button>`}}
+function sceneNext(){const n=SC.next;SC=null;save();n()}
+function optOK(o){return!o.cost||G.berries>=o.cost}
+function visible(o){return(!o.req||has(o.req))&&(!o.need||o.need())}
+function optButtons(ops){return ops.map((o,i)=>visible(o)?`<button style="animation-delay:${i*.05}s" ${optOK(o)&&!o.off?'':'disabled'} onclick="choose(${i})">${o.req?`<b style="color:var(--lacre)">[${CHARS[o.req]?.n||o.req}]</b> `:''}${o.n}${o.s?`<small>${o.s}</small>`:''}</button>`:'').join('')}
+function choose(i){
+  const c=SC.choices[i];if(!c||!optOK(c)||c.off)return;sfx('click');
+  OUT=[];const r=c.f()||{};const lines=OUT;OUT=[];
+  const then=r.fight?()=>startBattle(r.fight,r.opt||{}):(r.then||SC.next);
+  if(!lines.length&&!r.choices){SC=null;save();return then()}
+  SC.lines=lines;SC.i=0;SC.choices=r.choices||null;SC.next=then;SC.btn=r.fight?'¡A pelear!':r.btn||'Continuar';
+  refreshHud();playLine();
+}
+function back(){save();G.mode==='island'?renderIsland():renderSea()}
+
+/* ------------------------------------------------------------------------
+   TÍTULO E INTRO
+   ------------------------------------------------------------------------ */
+function renderTitle(){
+  stopMaps();closeMenu();const sv=loadSave();playMusic('sea');
+  stage.innerHTML=`<div class="vnbg" style="${bgStyle('mar')}"></div>
+   <div class="abs" style="left:60px;bottom:60px">${img('luffy',300)}</div>
+   <div class="abs perg" style="right:50px;top:50px;width:440px;padding:18px 22px"><h1>Mar de Leyendas</h1><p class="muted">Arco 1: Shells Town · prototipo v0.6</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
+     ${sv?`<button class="primary" onclick="G=loadSave();back()">Continuar<small>${sv.quest}</small></button>`:''}
+     <button class="${sv?'':'primary'}" onclick="startNew()">Nueva partida${sv?'<small>Borra la partida guardada</small>':''}</button></div>
+    <p class="muted" style="font-size:15px;margin-top:12px">La partida se guarda sola en este navegador.</p></div>`;
+}
+function startNew(){
+  newGame();save();
+  scene({bg:'pueblo',place:'Villa Molino',left:['luffy'],right:['tabernera'],lines:[
+   ['narr','Villa Molino, un pueblo tranquilo del East Blue. Hoy un chaval con sombrero de paja se marcha al mar.'],
+   ['luffy','¡Me voy a hacer pirata! ¡Y voy a juntar a la mejor tripulación del mundo!'],
+   ['tabernera','Ten cuidado ahí fuera. Y pasa por la taberna antes de irte, que te he guardado provisiones.'],
+   ['luffy','¡Shishishi! ¡Gracias!'],
+   ['narr','Tu barca es diminuta, tu tripulación eres tú solo y no tienes ni idea de navegar. Empezamos bien.']],
+   btn:'Explorar el pueblo',next:()=>{G.mode='island';renderIsland()}});
+}
+
+/* ------------------------------------------------------------------------
+   BUCLE DE DIBUJO DE MAPAS (cámara y movimiento suave)
+   ------------------------------------------------------------------------ */
+let LOOP=null,MV=null,CAM={x:0,y:0};
+function startLoop(fn){LOOP=fn;const tick=t=>{if(LOOP!==fn)return;fn(t);requestAnimationFrame(tick)};requestAnimationFrame(tick)}
+function camTo(px,py,ww,wh){CAM.x=clamp(px-W/2,0,Math.max(0,ww-W));CAM.y=clamp(py-H/2+20,-60,Math.max(0,wh-H))}
+// mover: path de casillas, cada paso dura dur ms; onStep(x,y) devuelve true para parar
+function moveAlong(path,from,dur,onStep,onEnd){
+  if(window.SIM){let cur=from;for(const p of path){if(onStep(p[0],p[1],cur))return;cur=p}onEnd&&onEnd();return}
+  MV={path:[...path],from:[...from],to:path[0],t0:performance.now(),dur,onStep,onEnd};
+}
+function mvPos(now,base){
+  if(!MV)return base;
+  let p=(now-MV.t0)/MV.dur;
+  while(MV&&p>=1){const [x,y]=MV.to,prev=MV.from;const stop=MV.onStep(x,y,prev);if(!MV)return base;
+    if(stop||MV.path.length<=1){const e=MV.onEnd;MV=null;if(!stop&&e)e();return null}
+    MV.path.shift();MV.from=[x,y];MV.to=MV.path[0];MV.t0+=MV.dur;p=(now-MV.t0)/MV.dur}
+  if(!MV)return base;
+  return{x:MV.from[0]+(MV.to[0]-MV.from[0])*p,y:MV.from[1]+(MV.to[1]-MV.from[1])*p,moving:true};
+}
+function bfs(w,h,walk,sx,sy,tx,ty){
+  const key=(x,y)=>y*w+x,prev=new Map([[key(sx,sy),null]]),q=[[sx,sy]];
+  while(q.length){const [x,y]=q.shift();if(x===tx&&y===ty){const p=[];let k=key(x,y);while(k!==key(sx,sy)){p.unshift([k%w,Math.floor(k/w)]);k=prev.get(k)}return p}
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=w||ny>=h)continue;const k=key(nx,ny);if(prev.has(k))continue;if(!walk(nx,ny)&&!(nx===tx&&ny===ty))continue;prev.set(k,key(x,y));q.push([nx,ny])}}
+  return null;
+}
+function tapTile(e,cv){const r=cv.getBoundingClientRect(),sx=(e.clientX-r.left)/r.width*W,sy=(e.clientY-r.top)/r.height*H;return[Math.floor((sx+CAM.x)/TS),Math.floor((sy+CAM.y)/TS)]}
+function drawLabel(x,t,px,py,col='#f3e6c4'){x.font='bold 17px "Baloo 2",serif';x.textAlign='center';x.lineWidth=4;x.strokeStyle='#1b120b';x.strokeText(t,px,py);x.fillStyle=col;x.fillText(t,px,py)}
+function drawShadow(x,px,py,w){x.fillStyle='rgba(0,0,0,.25)';x.beginPath();x.ellipse(px,py,w,w*.35,0,0,7);x.fill()}
+
+/* ------------------------------------------------------------------------
+   ISLAS (paseo con cámara)
+   ------------------------------------------------------------------------ */
+function renderIsland(){
+  const I=ISLANDS[G.isl.id];G.mode='island';G.lastIsl=G.isl.id;MV=null;
+  stage.innerHTML=`<canvas id="cv" width="${W}" height="${H}"></canvas>${hud()}<div class="quest perg">🧭 ${G.quest}</div><div class="abs perg" style="right:10px;bottom:10px;padding:4px 12px;font-size:16px;z-index:9" class="muted">${I.n} · toca para caminar</div>`;
+  const cv=document.getElementById('cv');cv.onclick=e=>{const [x,y]=tapTile(e,cv);walkTo(x,y)};
+  save();playMusic('island');startLoop(drawIsland);if(window.SIM)drawIsland(0);
+}
+function drawIsland(now){
+  const cv=document.getElementById('cv');if(!cv)return;const x=cv.getContext('2d'),I=ISLANDS[G.isl.id];x.imageSmoothingEnabled=false;
+  const pos=mvPos(now,{x:G.isl.x,y:G.isl.y})||{x:G.isl.x,y:G.isl.y};
+  const ww=IW*TS,wh=I.map.length*TS;camTo(pos.x*TS+TS/2,pos.y*TS+TS/2,ww,wh);
+  x.fillStyle='#1d4f86';x.fillRect(0,0,W,H);
+  x.save();x.translate(-Math.round(CAM.x),-Math.round(CAM.y));
+  const wf=Math.floor(now/400)%4;
+  const y0=Math.max(-2,Math.floor(CAM.y/TS)-1),y1=Math.min(I.map.length+2,Math.ceil((CAM.y+H)/TS)+1),x0=Math.max(-2,Math.floor(CAM.x/TS)-1),x1=Math.min(IW+2,Math.ceil((CAM.x+W)/TS)+1);
+  const land=c=>c!=='~';
+  for(let j=y0;j<y1;j++)for(let i=x0;i<x1;i++){
+    const c=tileAt(I,i,j),X=i*TS,Y=j*TS,d=t=>x.drawImage(TX[t],X,Y,TS,TS);
+    if(c==='~'){const nl=[[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>land(tileAt(I,i+a,j+b)));d((nl?'shal':'water')+wf);
+      x.fillStyle='rgba(255,255,255,.75)';if(land(tileAt(I,i,j-1)))x.fillRect(X,Y,TS,4+((wf%2)?2:0));if(land(tileAt(I,i,j+1)))x.fillRect(X,Y+TS-4,TS,4);if(land(tileAt(I,i-1,j)))x.fillRect(X,Y,4,TS);if(land(tileAt(I,i+1,j)))x.fillRect(X+TS-4,Y,4,TS);continue}
+    if(c==='.')d('sand');else if(c===','||c==='T')d(c==='T'?'tree':'grass');else if(c==='F')d('flower');else if(c==='#')d('path');else if(c==='=')d('dock');else if(c==='Y')d('palm');
+    else if(c==='R')d('cliff');
+    else if(c==='H'){const below=tileAt(I,i,j+1);d(below==='H'||/[a-z]/.test(below)&&tileAt(I,i,j+2)!=='~'&&false?'roof':below==='H'?'roof':'wall')}
+    else if(c==='B'){const below=tileAt(I,i,j+1);d(below==='B'?'stone':'stoneF')}
+    else if(/[a-z]/.test(c)){const above=tileAt(I,i,j-1);
+      if(c==='m'){d('dock')}else if(c==='q'){d('cave')}else if(c==='e'){d('sand');x.fillStyle='#4a7c59';x.fillRect(X+18,Y+16,10,18);x.fillStyle='#f3e6c4';x.fillRect(X+20,Y+20,6,6)}
+      else if(c==='f'){d('dock')}else if(above==='B'){d('doorS')}else d('door')}
+    else d('sand');
+  }
+  // tejados por encima (filas superiores de casas)
+  for(let j=y0;j<y1;j++)for(let i=x0;i<x1;i++){const c=tileAt(I,i,j);if(c==='H'&&tileAt(I,i,j+1)==='H')x.drawImage(TX.roof,i*TS,j*TS,TS,TS)}
+  for(let j=0;j<I.map.length;j++)for(let i=0;i<IW;i++){const c=tileAt(I,i,j);if(/[a-z]/.test(c)){const px=i*TS+TS/2,py=j*TS-6+Math.sin(now/350+i)*3;
+    x.fillStyle='#f3e6c4';x.strokeStyle='#3b2a14';x.lineWidth=2;x.beginPath();x.arc(px,py-10,15,0,7);x.fill();x.stroke();x.font='18px serif';x.textAlign='center';x.fillText(POI_ICON[c]||'❗',px,py-3);drawLabel(x,I.poi[c],px,j*TS+TS+16)}}
+  // personajes y lugares ordenados por y
+  const ents=[];
+  (I.npc||[]).forEach(n=>ents.push({y:n.y,draw:()=>{const px=n.x*TS+TS/2,py=n.y*TS+TS;drawShadow(x,px,py-4,16);const b=Math.sin(now/300+n.x)*1.5;
+    if(ASSETS[n.k]){const im=imgObj(ASSETS[n.k].idle[Math.floor(now/520+n.x)%2]);if(im.complete&&im.naturalWidth){x.save();x.translate(px,0);x.scale(-1,1);x.drawImage(im,-44,py-90,88,88);x.restore()}}
+    else x.drawImage(sprCanvas(n.k),px-28,py-58+b,56,56)}}));
+  // Luffy: andando usa la tira de caminar; parado, su animación de reposo (de lado) o respiración (de frente/espaldas)
+  const dir=G.isl.dir||'down',side=dir==='left'||dir==='right';let im,br=0;
+  if(pos.moving){const fr=WALK[side?'right':dir];im=imgObj(walkSrc(fr[Math.floor(now/120)%fr.length]))}
+  else{im=imgObj(ASSETS.luffy.idle[Math.floor(now/480)%2])} // parado: siempre de perfil
+  ents.push({y:pos.y,draw:()=>{const px=pos.x*TS+TS/2,py=pos.y*TS+TS;drawShadow(x,px,py-4,18+br);
+    const S=pos.moving?84:92,h=S*(1+.035*br),w=S*(1-.02*br);
+    if(im.complete&&im.naturalWidth){x.save();if(pos.moving?dir==='left':(G.isl.face||1)<0){x.translate(px,0);x.scale(-1,1);x.drawImage(im,-w/2,py-2-h,w,h)}else x.drawImage(im,px-w/2,py-2-h,w,h);x.restore()}}});
+  ents.sort((a,b)=>a.y-b.y).forEach(e=>e.draw());
+  x.restore();
+}
+function walkTo(tx,ty){
+  if(MV||!G||G.mode!=='island')return;const I=ISLANDS[G.isl.id];
+  const npc=npcAt(I,tx,ty);let target=[tx,ty];
+  if(npc){let best=null;for(const [dx,dy] of [[0,1],[1,0],[-1,0],[0,-1]]){const nx=tx+dx,ny=ty+dy;if(islWalk(I,nx,ny)&&!/[a-z]/.test(tileAt(I,nx,ny))){const p=nx===G.isl.x&&ny===G.isl.y?[]:bfs(IW,I.map.length,(a,b)=>islWalk(I,a,b)&&!/[a-z]/.test(tileAt(I,a,b)),G.isl.x,G.isl.y,nx,ny);if(p&&(!best||p.length<best.length))best=p}}
+    if(!best)return;if(!best.length)return talkNpc(npc);
+    return moveAlong(best,[G.isl.x,G.isl.y],150,(x,y,prev)=>{G.isl.dir=x<prev[0]?'left':x>prev[0]?'right':y<prev[1]?'up':'down';if(x!==prev[0])G.isl.face=x<prev[0]?-1:1;G.isl.x=x;G.isl.y=y;return false},()=>{save();talkNpc(npc)})}
+  if(!islWalk(I,tx,ty))return;
+  const path=bfs(IW,I.map.length,(x,y)=>islWalk(I,x,y)&&!/[a-z]/.test(tileAt(I,x,y)),G.isl.x,G.isl.y,tx,ty);if(!path||!path.length)return;
+  moveAlong(path,[G.isl.x,G.isl.y],150,(x,y,prev)=>{sfx('step');G.isl.dir=x<prev[0]?'left':x>prev[0]?'right':y<prev[1]?'up':'down';if(x!==prev[0])G.isl.face=x<prev[0]?-1:1;const c=tileAt(I,x,y);
+      if(/[a-z]/.test(c)){MV=null;save();later(()=>poi(G.isl.id,c),60);return true}
+      G.isl.x=x;G.isl.y=y;return false},()=>save());
+}
+function talkNpc(n){scene({bg:{villa:'pueblo',shells:'pueblo',puerto:'muelle',islote:'playa'}[G.isl.id],place:ISLANDS[G.isl.id].n,right:[n.k],lines:n.l()})}
+
+/* ------------------------------------------------------------------------
+   MAR LIBRE: cámara, niebla suave, minimapa y barcos que se ven venir
+   ------------------------------------------------------------------------ */
+let SEEN=new Set(),FOG=null;
+function reveal(cx,cy,r){if(!G.sea.seen)G.sea.seen=[];const s=new Set(G.sea.seen);for(let y=Math.floor(cy-r);y<=cy+r;y++)for(let x=Math.floor(cx-r);x<=cx+r;x++)if(x>=0&&y>=0&&x<SW&&y<SH&&(x-cx)**2+(y-cy)**2<=r*r+1)s.add(x+','+y);G.sea.seen=[...s];SEEN=s;FOG=null}
+function adjIsland(){for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const i=islandAt(G.sea.x+dx,G.sea.y+dy);if(i&&i.id)return i.id}return null}
+function buildFog(){const f=document.createElement('canvas');f.width=SW*8;f.height=SH*8;const x=f.getContext('2d');x.fillStyle='#d8c290';x.fillRect(0,0,f.width,f.height);
+  x.globalCompositeOperation='destination-out';SEEN.forEach(k=>{const [a,b]=k.split(',').map(Number),cx=a*8+4,cy=b*8+4,g=x.createRadialGradient(cx,cy,0,cx,cy,13);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(.5,'rgba(0,0,0,.85)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(cx-13,cy-13,26,26)});
+  x.globalCompositeOperation='source-over';FOG=f;return f}
+function renderSea(){
+  G.mode='sea';MV=null;SEEN=new Set(G.sea.seen||[]);FOG=null;initEnts();const near=adjIsland();
+  stage.innerHTML=`<canvas id="cv" width="${W}" height="${H}"></canvas><canvas id="mini" width="180" height="120"></canvas>${hud()}
+   <div class="quest perg">🧭 ${G.quest}</div>${near?`<button class="primary mapbtn" onclick="land('${near}')">⚓ Desembarcar en ${ISLANDS_N[near]}</button>`:''}`;
+  const cv=document.getElementById('cv');cv.onclick=e=>{const [x,y]=tapTile(e,cv);sailTo(x,y)};
+  buildWorld();drawMini();save();playMusic('sea');startLoop(drawSea);if(window.SIM)drawSea(0);
+}
+function drawMini(){const m=document.getElementById('mini');if(!m)return;const x=m.getContext('2d');x.imageSmoothingEnabled=true;x.drawImage(buildWorld(),0,0,180,120);x.drawImage(FOG||buildFog(),0,0,180,120);
+  const sx=180/SW,sy=120/SH;x.fillStyle='#9b2226';x.beginPath();x.arc((G.sea.x+.5)*sx,(G.sea.y+.5)*sy,3.5,0,7);x.fill();x.strokeStyle='#fff';x.lineWidth=1;x.stroke();
+  if(G.f.knowShells&&!SEEN.has('46,30')){x.fillStyle='#9b2226';x.font='bold 14px serif';x.textAlign='center';x.fillText('✕',46*sx,31*sy)}}
+function drawBoat(x,cx,cy,face,kind,now){
+  x.save();x.translate(cx,cy+Math.sin(now/280+cx)*2);x.scale(face,1);
+  x.fillStyle='rgba(255,255,255,.45)';x.beginPath();x.ellipse(0,16,30,6,0,0,7);x.fill();
+  x.fillStyle=kind==='marina'?'#e9eef3':'#5a3a22';x.beginPath();x.moveTo(-28,4);x.lineTo(28,4);x.lineTo(20,16);x.lineTo(-20,16);x.closePath();x.fill();x.strokeStyle='#2b1d12';x.lineWidth=2;x.stroke();
+  if(kind==='marina'){x.fillStyle='#3a6ea5';x.fillRect(-24,8,48,3)}
+  x.fillStyle='#3b2a14';x.fillRect(-2,-36,4,40);
+  x.fillStyle=kind==='marina'?'#f7f7f7':'#1f1a17';x.beginPath();x.moveTo(-20,-32);x.lineTo(18,-32);x.quadraticCurveTo(22,-14,18,0);x.lineTo(-20,0);x.quadraticCurveTo(-16,-16,-20,-32);x.fill();x.strokeStyle='#2b1d12';x.lineWidth=1.5;x.stroke();
+  if(kind==='marina'){x.fillStyle='#3a6ea5';x.beginPath();x.moveTo(-8,-18);x.quadraticCurveTo(0,-26,8,-18);x.quadraticCurveTo(0,-22,-8,-18);x.fill()}
+  else{x.fillStyle='#f3f3f3';x.beginPath();x.arc(0,-18,6,0,7);x.fill();x.fillStyle='#1f1a17';x.fillRect(-3,-19,2,2);x.fillRect(1,-19,2,2);x.strokeStyle='#f3f3f3';x.lineWidth=2;x.beginPath();x.moveTo(-9,-8);x.lineTo(9,-4);x.moveTo(9,-8);x.lineTo(-9,-4);x.stroke()}
+  x.restore();
+}
+function drawFin(x,cx,cy,now){const o=Math.sin(now/400)*3;x.save();x.translate(cx+o,cy);x.strokeStyle='rgba(255,255,255,.6)';x.lineWidth=2;for(let k=0;k<3;k++){x.beginPath();x.ellipse(0,10,14+k*7,4+k*2,0,0,7);x.globalAlpha=.6-k*.18;x.stroke()}x.globalAlpha=1;
+  x.fillStyle='#3c5a6e';x.beginPath();x.moveTo(-10,10);x.quadraticCurveTo(-2,-18,10,-14);x.quadraticCurveTo(4,0,10,10);x.closePath();x.fill();x.strokeStyle='#1b2a33';x.lineWidth=2;x.stroke();x.restore()}
+function drawBarrel(x,cx,cy,now){const b=Math.sin(now/300+cx)*2;x.save();x.translate(cx,cy+b);x.fillStyle='rgba(255,255,255,.5)';x.beginPath();x.ellipse(0,8,14,4,0,0,7);x.fill();x.fillStyle='#8d5524';x.beginPath();x.ellipse(0,0,10,12,0,0,7);x.fill();x.strokeStyle='#3b2a14';x.lineWidth=2;x.stroke();x.beginPath();x.moveTo(-10,-4);x.lineTo(10,-4);x.moveTo(-10,4);x.lineTo(10,4);x.stroke();x.restore()}
+function drawSea(now){
+  const cv=document.getElementById('cv');if(!cv)return;const x=cv.getContext('2d');
+  const pos=mvPos(now,{x:G.sea.x,y:G.sea.y})||{x:G.sea.x,y:G.sea.y};
+  camTo(pos.x*TS+TS/2,pos.y*TS+TS/2,SW*TS,SH*TS);
+  x.fillStyle='#16466f';x.fillRect(0,0,W,H);
+  x.save();x.translate(-Math.round(CAM.x),-Math.round(CAM.y));
+  x.imageSmoothingEnabled=true;x.drawImage(buildWorld(),0,0,SW*TS,SH*TS);
+  const y0=Math.max(0,Math.floor(CAM.y/TS)),y1=Math.min(SH,Math.ceil((CAM.y+H)/TS)+1),x0=Math.max(0,Math.floor(CAM.x/TS)),x1=Math.min(SW,Math.ceil((CAM.x+W)/TS)+1);
+  // brillos de olas
+  x.strokeStyle='rgba(255,255,255,.55)';x.lineWidth=2;x.lineCap='round';
+  for(let j=y0;j<y1;j++)for(let i=x0;i<x1;i++){const c=SEA[j][i];if(c.t==='L')continue;const ph=(now/1600+hash(i,j,21))%1;if(ph>.5)continue;
+    const a=Math.sin(ph/.5*Math.PI),X=i*TS+hash(i,j,22)*30+6,Y=j*TS+hash(j,i,23)*30+10;x.globalAlpha=a*.7;x.beginPath();x.moveTo(X,Y);x.quadraticCurveTo(X+6,Y-4,X+12,Y);x.stroke()}
+  x.globalAlpha=1;
+  // corrientes
+  for(let j=y0;j<y1;j++)for(let i=x0;i<x1;i++){const t=SEA[j][i].t;if(t!=='>'&&t!=='v')continue;const X=i*TS,Y=j*TS,o=(now/14+i*13+j*7)%TS;x.strokeStyle='rgba(215,240,255,.75)';x.lineWidth=3;x.beginPath();
+    if(t==='>'){x.moveTo(X+o-16,Y+16);x.lineTo(X+o,Y+16);x.moveTo(X+(o+24)%TS-16,Y+32);x.lineTo(X+(o+24)%TS,Y+32)}else{x.moveTo(X+16,Y+o-16);x.lineTo(X+16,Y+o);x.moveTo(X+32,Y+(o+24)%TS-16);x.lineTo(X+32,Y+(o+24)%TS)}x.stroke()}
+  // tormenta
+  const scx=STORM.cx*TS,scy=STORM.cy*TS,g=x.createRadialGradient(scx,scy,40,scx,scy,STORM.rx*TS*1.1);g.addColorStop(0,'rgba(25,28,48,.55)');g.addColorStop(.75,'rgba(25,28,48,.4)');g.addColorStop(1,'rgba(25,28,48,0)');
+  x.fillStyle=g;x.beginPath();x.ellipse(scx,scy,STORM.rx*TS*1.15,STORM.ry*TS*1.25,0,0,7);x.fill();
+  x.strokeStyle='rgba(200,215,255,.45)';x.lineWidth=1.5;for(let k=0;k<70;k++){const rx=scx+(hash(k,1,31)-.5)*STORM.rx*2*TS,ry=scy+(((now/3+hash(k,2,31)*900)%(STORM.ry*2*TS))-STORM.ry*TS);x.beginPath();x.moveTo(rx,ry);x.lineTo(rx-4,ry+14);x.stroke()}
+  if((now%4200)<120){x.fillStyle='rgba(255,255,235,.28)';x.beginPath();x.ellipse(scx,scy,STORM.rx*TS,STORM.ry*TS,0,0,7);x.fill()}
+  // entidades del mar
+  (G.sea.ents||[]).forEach(e=>{if(e.gone||!SEEN.has(e.x+','+e.y))return;const ex=e.x*TS+TS/2,ey=e.y*TS+TS/2;
+    if(e.k==='barril')drawBarrel(x,ex,ey,now);else if(e.k==='rey')drawFin(x,ex,ey,now);else drawBoat(x,ex,ey,e.face||1,e.k,now);
+    if(e.alert&&now-e.alert<1500&&e.alert<=now){x.font='bold 30px "Lilita One",sans-serif';x.textAlign='center';x.lineWidth=5;x.strokeStyle='#1b120b';x.strokeText('!',ex,ey-44);x.fillStyle='#ffd166';x.fillText('!',ex,ey-44)}});
+  // barco
+  drawShip(x,pos.x*TS+TS/2,pos.y*TS+TS/2+Math.sin(now/300)*2,G.sea.face||1,now,pos.moving);
+  // niebla suave
+  x.imageSmoothingEnabled=true;x.drawImage(FOG||buildFog(),0,0,SW*TS,SH*TS);
+  // nombres
+  SEA_ISL.forEach(I=>{if(!I.id)return;const known=SEEN.has(Math.round(I.cx)+','+Math.round(I.cy+I.r*.6))||SEEN.has(Math.round(I.cx)+','+Math.round(I.cy));
+    if(known)drawLabel(x,I.n,I.cx*TS,(I.cy-I.r*1.05)*TS,'#ffe8a3');
+    else if(I.id==='shells'&&G.f.knowShells){x.font='bold 46px "Lilita One",serif';x.fillStyle='#9b2226';x.textAlign='center';x.fillText('✕',I.cx*TS,I.cy*TS);drawLabel(x,'¿Shells Town?',I.cx*TS,I.cy*TS+30,'#ffe8a3')}});
+  x.restore();
+}
+let SHIPHIT=0;
+function drawShip(x,cx,cy,face,now,moving){
+  // barca de Rubén: 0 quieta, 1-2 balanceo navegando, 3 golpe (tormenta)
+  const fr=SHIPHIT>performance.now()?3:moving?1+Math.floor(now/260)%2:(Math.floor(now/800)%2?0:1),im=imgObj(`sprites/barco_${fr}.png`);
+  if(im.complete&&im.naturalWidth){const S=100;x.save();x.translate(cx,0);x.scale(face,1);x.drawImage(im,-S/2,cy+24-S,S,S);x.restore();return}
+  drawBoat(x,cx,cy,face,'pirata',now);
+}
+function sailTo(tx,ty){
+  if(MV||G.mode!=='sea')return;
+  const isl=islandAt(tx,ty);
+  if(isl||!seaWalk(tx,ty)){if(isl&&isl.id&&adjIsland()===isl.id)return land(isl.id);
+    let best=null;for(let y=ty-7;y<=ty+7;y++)for(let x=tx-7;x<=tx+7;x++)if(seaWalk(x,y)){const d=Math.hypot(x-tx,y-ty);if(!best||d<best[2])best=[x,y,d]}
+    if(!best)return;tx=best[0];ty=best[1]}
+  const path=(seaT(tx,ty)!=='s'&&bfs(SW,SH,(x,y)=>seaWalk(x,y)&&seaT(x,y)!=='s',G.sea.x,G.sea.y,tx,ty))||bfs(SW,SH,(x,y)=>seaWalk(x,y),G.sea.x,G.sea.y,tx,ty);if(!path||!path.length)return;
+  moveAlong(path,[G.sea.x,G.sea.y],190,(x,y,prev)=>{G.sea.face=x<prev[0]?-1:x>prev[0]?1:G.sea.face;G.sea.x=x;G.sea.y=y;const ev=seaStep();drawMini();refreshHud();
+      if(ev){MV=null;save();later(ev,120);return true}return false},
+    ()=>{save();renderSea()});
+}
+/* --- barcos enemigos, Rey Marino y barriles: se ven en el mapa y se pueden esquivar --- */
+function randWater(minDist,cond){for(let k=0;k<400;k++){const x=ri(1,SW-2),y=ri(1,SH-2);if(!seaWalk(x,y)||SEA[y][x].d<1.5)continue;if(Math.hypot(x-G.sea.x,y-G.sea.y)<minDist)continue;if(cond&&!cond(x,y))continue;return[x,y]}return[30,12]}
+function spawnEnt(k){const [x,y]=randWater(12,k==='rey'?isDeep:null);return{k,x,y,hx:x,hy:y,cd:0,face:1,gone:false,back:0}}
+function initEnts(){if(G.sea.ents)return;G.sea.ents=[spawnEnt('pirata'),spawnEnt('pirata'),spawnEnt('marina'),spawnEnt('marina'),spawnEnt('rey'),spawnEnt('barril'),spawnEnt('barril'),spawnEnt('barril')]}
+function entStep(){
+  const ents=G.sea.ents||[],px=G.sea.x,py=G.sea.y;
+  for(const e of ents){
+    if(e.gone){if(--e.back<=0){Object.assign(e,spawnEnt(e.k))}continue}
+    if(e.k==='barril')continue;
+    if(e.cd>0){e.cd--;continue}
+    const dist=Math.hypot(e.x-px,e.y-py),chase=dist<=(e.k==='rey'?4:5)&&!adjIsland();
+    if(chase&&!e.alert){e.alert=performance.now();sfx('alert')}
+    if(!chase)e.alert=0;
+    if(chase&&(G.sea.steps%3===2))continue; // van algo más lentos que tú: se les puede dar esquinazo
+    let best=null;
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=e.x+dx,ny=e.y+dy;if(!seaWalk(nx,ny))continue;if(e.k==='rey'&&!isDeep(nx,ny))continue;
+      const sc=chase?Math.hypot(nx-px,ny-py):Math.hypot(nx-e.hx,ny-e.hy)>6?Math.hypot(nx-e.hx,ny-e.hy):rand()*6;if(!best||sc<best[2])best=[nx,ny,sc,dx]}
+    if(best){e.x=best[0];e.y=best[1];if(best[3])e.face=best[3]}
+  }
+  if(!G.f.coby)return null;
+  for(const e of ents){if(e.gone||e.cd>0)continue;if(Math.max(Math.abs(e.x-px),Math.abs(e.y-py))<=1){return ()=>encounter(e)}}
+  return null;
+}
+function seaStep(){
+  const s=G.ship,sea=G.sea;sea.steps++;reveal(sea.x,sea.y,4);
+  if(sea.steps%4===0)sfx('splash');
+  const c=seaT(sea.x,sea.y);
+  if(c==='s'){const d=G.upg.includes('velas')?1:3;s.casco-=d;SHIPHIT=performance.now()+600;sfx('thunder');toast(`⛈ ¡Tormenta! El casco pierde ${d}.`)}
+  if(s.casco<=0)return naufragio;
+  if(c==='>'||c==='v'){const [dx,dy]=c==='>'?[1,0]:[0,1];if(seaWalk(sea.x+dx,sea.y+dy)){sea.x+=dx;sea.y+=dy;reveal(sea.x,sea.y,4);toast('🌊 ¡Una corriente os arrastra!')}}
+  if(!G.f.coby){const d0=dockOf('villa');if(Math.hypot(sea.x-d0[0],sea.y-d0[1])>=6)return cobyScene}
+  return entStep();
+}
+function islStart(id){const I=ISLANDS[id];let p=[10,I.map.length-3];I.map.forEach((row,y)=>{const x=row.indexOf('m');if(x>=0)p=[x,y-1]});return p}
+function land(id){
+  MV=null;sfx('door');const p=islStart(id);G.isl={id,x:p[0],y:p[1],face:1};G.mode='island';
+  if(id==='shells'&&!G.f.shellsArr){G.f.shellsArr=1;quest('Pregunta en el pueblo por el cazador de piratas.');
+    return scene({bg:'pueblo',place:'Shells Town',lines:[['narr','Shells Town. Un pueblo apagado, a la sombra de una base enorme de la Marina.'],...(has('coby')?[['coby','Aquí manda el capitán Morgan... Dicen que es un tirano y que su hijo es todavía peor.']]:[]),['luffy','¡A ver dónde está ese cazador de piratas!']],next:renderIsland})}
+  if(id==='puerto'&&!G.f.puertoArr){G.f.puertoArr=1;return scene({bg:'muelle',place:'Puerto Gaviota',lines:[['narr','Un puerto pesquero lleno de redes, gaviotas y olor a sardina. Tienen astillero.'],['luffy','¡Uooh! ¡Aquí pueden mejorar el barco!']],next:renderIsland})}
+  if(id==='islote'&&!G.f.isloteArr){G.f.isloteArr=1;return scene({bg:'playa',place:'Islote Calavera',lines:[['narr','Un islote con un acantilado en forma de calavera. Nadie vive aquí. Huele a misterio... y a cangrejo.']],next:renderIsland})}
+  renderIsland();
+}
+function shipToDock(id){const d=dockOf(id);G.sea.x=d[0];G.sea.y=d[1];reveal(d[0],d[1],4)}
+function naufragio(){
+  G.ship.casco=15;G.berries=Math.floor(G.berries/2);const id=G.lastIsl||'villa';const p=islStart(id);G.isl={id,x:p[0],y:p[1],face:1};shipToDock(id);G.mode='island';
+  scene({bg:'tormenta',lines:[['narr','El casco cruje, el agua entra a chorros... ¡el barco se hunde!'],['narr',`Despertáis en la playa de ${ISLANDS[id].n}, con medio botín menos y el barco remendado de mala manera.`],['luffy','...¡Tengo hambre!']],next:renderIsland});
+}
+
+/* ------------------------------------------------------------------------
+   ENCUENTROS EN EL MAR (con el barco que te ha alcanzado)
+   ------------------------------------------------------------------------ */
+function fleeChance(){return Math.min(.92,(G.upg.includes('velas')?.8:.6)+(G.upg.includes('mascaron')?.1:0))}
+function entDone(e,how){if(how==='flee'){e.cd=8;return}e.gone=true;e.back=40+ri(0,20)}
+function encounter(e){
+  if(e.k==='barril')return barrilScene(e);
+  if(e.k==='rey')return reyScene(e);
+  const marina=e.k==='marina';
+  const foes=marina?(chance(.5)?['marine','fusilero']:['marine','marine','fusilero']):(chance(.5)?['bucanero','bucanero']:['bucanero','bucanero','bucanero']);
+  const can=G.upg.includes('canones'),win={bg:'cubierta',onWin:null};
+  const fight=(o={})=>{entDone(e,'fight');return{fight:foes,opt:{bg:'cubierta',...o}}};
+  scene({bg:'mar',place:'En alta mar',right:foes.slice(0,3),lines:marina?[['narr','El barco de la Marina os ha alcanzado.'],['marine','¡Alto, piratas! ¡Quedáis detenidos!']]:[['narr','El barco pirata se os pone al costado con malas intenciones.'],['bucanero','¡Entregad el dinero y la carne, pringados!'],['luffy','¿La carne? Ni de broma.']],choices:[
+    {n:'¡Al abordaje!',s:'Combate',f:()=>fight()},
+    {n:'¡Cañonazo y al abordaje!',need:()=>can,s:'Empiezan el combate con 12 de daño',f:()=>{say('¡BOOOM! La andanada les pilla desprevenidos.');return fight({cannons:true})}},
+    {n:'Huir a toda vela',s:`${Math.round(fleeChance()*100)}% de éxito`,f:()=>{if(chance(fleeChance())){entDone(e,'flee');say('¡Os escapáis por los pelos! Se quedan atrás un buen rato.');return{}}say('¡Os alcanzan!');return fight()}},
+    ...(marina?[{n:'Sobornar (30 💰)',cost:30,s:'Sin pelea',f:()=>{G.berries-=30;entDone(e,'bribe');say('El oficial cuenta las monedas y mira hacia otro lado.');fama(-1)}}]:[])]});
+}
+function reyScene(e){
+  scene({bg:'mar',place:'Aguas profundas',right:['reymarino'],lines:[['narr','El mar se abre. Un Rey Marino del tamaño de una isla os mira con hambre.'],['luffy','¡Uooooh! ¡Seguro que sabe riquísimo!'],...(has('zoro')?[['zoro','Para eso hay que ganarle primero.']]:[])],choices:[
+    {n:'¡A por él!',s:'Combate de élite',f:()=>{entDone(e,'fight');return{fight:['reymarino'],opt:{bg:'mar'}}}},
+    {n:'Tirarle una carne y huir',off:!(G.items.carne>0),s:'Gasta 1 carne con hueso, huida segura',f:()=>{G.items.carne--;entDone(e,'flee');say('Se lanza a por la carne. Os largáis.')}},
+    {n:'Huir',s:`${Math.round((fleeChance()-.15)*100)}% de éxito`,f:()=>{if(chance(fleeChance()-.15)){entDone(e,'flee');say('¡Remad, REMAD! ...Os habéis librado.');return{}}entDone(e,'fight');return{fight:['reymarino'],opt:{bg:'mar'}}}}]});
+}
+function barrilScene(e){
+  scene({bg:'mar',place:'En alta mar',lines:[['narr','Un barril flota a la deriva junto al barco.'],['luffy','¡Un barril! ¡A lo mejor tiene carne!']],choices:[
+    {n:'Subirlo a bordo',f:()=>{entDone(e,'take');const r=rand();if(r<.45){const k=pick(['carne','carne','medicina','bomba','sake']);gainItem(k);sfx('coin');say(`Dentro hay: ${ITEMS[k].n}.`)}else if(r<.8){const b=ri(20,45);G.berries+=b;sfx('coin');say(`¡Un saquito con ${b} berries!`)}else if(r<.9){G.ship.casco=Math.min(G.ship.cascoMax,G.ship.casco+10);say('Tablas y clavos. Remendáis el casco: +10.')}else{say('¡Era una trampa! Salen dos piratas del barril.');return{fight:['bucanero','bucanero'],opt:{bg:'cubierta'}}}}},
+    {n:'Dejarlo',f:()=>{e.cd=99;say('El barril se aleja con su misterio.')}}]});
+}
+
+/* ------------------------------------------------------------------------
+   LUGARES DE LAS ISLAS
+   ------------------------------------------------------------------------ */
+function poi(isl,c){
+  const Hh={
+   villa:{t:tabernaVilla,s:()=>shop('Tienda de Villa Molino',['carne','medicina','bomba','sake'],['guantes','chaleco']),m:muelle},
+   shells:{r:restaurante,b:patio,o:torre,s:()=>shop('Mercado de Shells Town',['carne','medicina','bomba','sake'],['camisa','garrote','brujula']),m:muelle},
+   puerto:{a:astillero,c:()=>shop('Mercado de Puerto Gaviota',['carne','medicina','bomba','sake'],['chaleco','camisa','brujula']),f:pescador,m:muelle},
+   islote:{q:cueva,e:botella,m:muelle}};
+  (Hh[isl][c]||back)();
+}
+function muelle(){const s=G.ship;
+  scene({bg:'muelle',place:ISLANDS[G.isl.id].n,lines:[['narr',`Vuestro barco os espera. Casco: 🛶 ${s.casco}/${s.cascoMax}.`]],choices:[
+    {n:'Zarpar',s:'Volver al mar',f:()=>({then:()=>{shipToDock(G.isl.id);G.mode='sea';renderSea()}})},
+    {n:'Quedarse en la isla',f:()=>{}}]})}
+function tabernaVilla(){
+  if(!G.f.provisiones){G.f.provisiones=1;gainItem('carne',2);G.f.knowShells=1;quest('Navega hacia el sureste, a Shells Town. Allí hay un cazador de piratas.');
+    return scene({bg:'taberna',place:'Taberna de Villa Molino',right:['tabernera'],lines:[
+     ['tabernera','¡Aquí estás! Toma, un par de carnes para el viaje. Y no te las comas todas el primer día.'],['luffy','¡Prometido! ...Bueno, casi prometido.'],
+     ['tabernera','Por cierto, dicen que en Shells Town, al sureste, la Marina tiene atado a un cazador de piratas. Un tal Roronoa Zoro. Dicen que es un demonio.'],
+     ['luffy','¿Un cazador de piratas? ¡Seguro que es fortísimo! ¡Lo quiero en mi tripulación!'],['narr','🍖 +2 Carne con hueso. Shells Town aparece marcada en tu carta.']],next:renderIsland})}
+  scene({bg:'taberna',place:'Taberna de Villa Molino',right:['tabernera'],lines:[['tabernera','¿Otra vez por aquí? ¿Qué te pongo?']],choices:[
+    {n:'Descansar',s:'Cura a toda la tripulación (gratis)',f:()=>{healParty(1);say('Una siesta y como nuevos.')}},
+    {n:'Carne para el viaje (15 💰)',cost:15,s:'+1 Carne con hueso',f:()=>{G.berries-=15;gainItem('carne');sfx('coin');say('Recién hecha. Que no se te enfríe.','tabernera')}},
+    {n:'Preguntar por rumores',f:()=>{say(pick(['Dicen que en el islote del suroeste hay una cueva con un cangrejo enorme... y algo que brilla.','En Puerto Gaviota, al noreste, tienen el mejor astillero del East Blue. Bueno, el único.','Cuidado con las aguas del suroeste: por ahí rondan los Reyes Marinos. Si ves una aleta, ¡vira!']),'tabernera')}},
+    {n:'Irse',f:()=>{}}]});
+}
+function shop(title,items,eqs){
+  const draw=(first)=>scene({bg:'tienda',place:title,right:['mercader'],lines:first?[['mercader','¡Pasen y vean! Todo legal... casi todo.']]:[],choices:[
+    ...items.map(k=>({n:`${ITEMS[k].n} — ${ITEMS[k].p} 💰`,s:`${ITEMS[k].d} · tienes ${G.items[k]||0}`,cost:ITEMS[k].p,f:()=>{G.berries-=ITEMS[k].p;gainItem(k);return{then:()=>draw(false)}}})),
+    ...eqs.filter(k=>!G.f['eq_'+k]).map(k=>({n:`${EQUIP[k].n} — ${EQUIP[k].p} 💰`,s:`${SLOT_TXT[EQUIP[k].s]}: ${eqTxt(EQUIP[k])}`,cost:EQUIP[k].p,f:()=>{G.berries-=EQUIP[k].p;G.f['eq_'+k]=1;gainEq(k);say(`${EQUIP[k].n} guardado. Equípalo en 📜 → Tripulación.`);return{then:()=>draw(false)}}})),
+    {n:'Salir',f:()=>{}}]});
+  draw(true);
+}
+function astillero(){
+  scene({bg:'astillero',place:'Astillero de Puerto Gaviota',right:['carpintero'],lines:[['carpintero','¡Menudo cascarón traéis! ¿Qué le hacemos?']],choices:[
+    {n:`Reparar el casco (${G.ship.cascoMax-G.ship.casco} 💰)`,cost:G.ship.cascoMax-G.ship.casco,off:G.ship.casco>=G.ship.cascoMax,s:'1 berry por punto',f:()=>{G.berries-=G.ship.cascoMax-G.ship.casco;G.ship.casco=G.ship.cascoMax;say('Como nuevo. Bueno, como usado pero entero.','carpintero');return{then:astillero}}},
+    ...Object.keys(UPG).filter(k=>!G.upg.includes(k)).map(k=>({n:`${UPG[k].n} — ${UPG[k].p} 💰`,s:UPG[k].d,cost:UPG[k].p,f:()=>{G.berries-=UPG[k].p;G.upg.push(k);if(k==='velas'){G.ship.cascoMax+=10;G.ship.casco+=10}say(`¡${UPG[k].n} instalado! Ya veréis la diferencia.`,'carpintero');return{then:astillero}}})),
+    {n:'Salir',f:()=>{}}]});
+}
+function pescador(){
+  if(G.f.pesca)return scene({bg:'muelle',right:['pescador'],lines:[['pescador','Hoy no pican. Vuelve otro día, chaval.']]});
+  scene({bg:'muelle',place:'Muelle de pesca',right:['pescador'],lines:[['pescador','¡Eh, piratas! Unos bucaneros me han robado las redes. Si me las recuperáis, os doy pescado y unas monedas.']],choices:[
+    {n:'Recuperar las redes',s:'Combate. Recompensa: 3 carnes con hueso, 30 berries y fama +1',f:()=>({fight:['bucanero','bucanero'],opt:{bg:'muelle',onWin:()=>{G.f.pesca=1;gainItem('carne',3);G.berries+=30;OUT=[];fama(1);const ex=OUT;OUT=[];scene({bg:'muelle',right:['pescador'],lines:[['pescador','¡Mis redes! Tomad, lo mejor de la pesca de hoy.'],['narr','🍖 +3 Carne con hueso · 💰 +30.'],...ex]})}}})},
+    {n:'Ahora no',f:()=>{}}]});
+}
+function cueva(){
+  if(G.f.cueva)return scene({bg:'cueva',place:'Cueva',lines:[['narr','La cueva está vacía. Solo queda el eco de los pinzazos.']]});
+  scene({bg:'cueva',place:'Cueva del Islote',right:['cangrejo'],lines:[['narr','Al fondo de la cueva brilla algo... encima del caparazón de un cangrejo GIGANTE.'],['luffy','¡¿Eso se come?!'],...(has('zoro')?[['zoro','Eso tiene más armadura que un marine.']]:[])],choices:[
+    {n:'¡A por el cangrejo!',s:'Combate de élite',f:()=>({fight:['cangrejo'],opt:{bg:'cueva',onWin:()=>{G.f.cueva=1;OUT=[];gainRare('perla');const ex=OUT;OUT=[];scene({bg:'cueva',lines:[['narr','En el caparazón del cangrejo había una perla enorme.'],...ex,['luffy','¡Y además hay cangrejo para cenar!']]})}}})},
+    {n:'Mejor otro día',f:()=>{}}]});
+}
+function botella(){
+  if(G.f.botella)return scene({bg:'playa',lines:[['narr','Solo queda el agujero donde estaba el tesoro.']]});
+  scene({bg:'playa',place:'Islote Calavera',lines:[['narr','Medio enterrada en la arena, una botella con un mensaje: «Mi tesoro maldito, bajo la palmera torcida. No lo toquéis».'],['luffy','¡Vamos a tocarlo!']],choices:[
+    {n:'Cavar bajo la palmera',s:'Un tesoro... maldito',f:()=>{G.f.botella=1;gainRare('doblon');say('Un doblón de oro que brilla de forma inquietante. Desde ahora, los enemigos sueltan más dinero.');fama(-1)}},
+    {n:'Dejarlo en paz',f:()=>{G.f.botella=1;say('Hay maldiciones con las que es mejor no jugar.');fama(1)}}]});
+}
+
+/* ------------------------------------------------------------------------
+   ARCO DE SHELLS TOWN
+   ------------------------------------------------------------------------ */
+function cobyScene(){
+  G.f.coby=1;
+  scene({bg:'mar',place:'En alta mar',right:['bucanero','coby'],lines:[
+   ['narr','Un barco pirata con una calavera de mazo se cruza en tu camino. En cubierta, un chaval con gafas friega el suelo temblando.'],
+   ['coby','¡N-no os acerquéis! ¡Estos piratas son terribles!'],['bucanero','¡Grumete, quita de en medio! ¡Tenemos visita!'],['luffy','¿Visita? ¡Jajaja! ¿Os doy una paliza?']],
+   choices:[{n:'¡Pelea!',s:'Tu primer combate',f:()=>({fight:['bucanero','bucanero'],opt:{bg:'cubierta',tutorial:true,story:true,onWin:cobyJoin}})}]});
+}
+function cobyJoin(){
+  G.crew.push(newMember('coby',2));G.f.knowShells=1;reveal(46,33,4);
+  quest('Navega a Shells Town (sureste) y busca al cazador de piratas.');
+  scene({bg:'cubierta',place:'En alta mar',right:['coby'],lines:[
+   ['coby','¡Me has salvado! Me llamo Coby. Llevo dos años de grumete a la fuerza con esos piratas...'],
+   ['coby','Mi sueño es entrar en la Marina. ¡Ser marine de los de verdad!'],['luffy','¡Pues vente conmigo hasta la próxima base!'],
+   ['coby','La más cercana está en Shells Town. ¡Os guío! ...Pero ahí tienen preso a Roronoa Zoro, el cazador de piratas.'],
+   ['narr','Coby se une como invitado. Shells Town aparece en tu carta.']],next:renderSea});
+}
+function restaurante(){
+  if(!G.f.rumor){G.f.rumor=1;quest('Ve al patio de la base de la Marina.');
+    return scene({bg:'taberna',place:'Restaurante',right:['duena','nina'],lines:[
+     ['narr','Un restaurante pequeño. La dueña os sirve mientras su hija os mira con curiosidad.'],
+     ['nina','¿Vais a ver al cazador de piratas? Lleva días atado en el patio... sin comer.'],
+     ['duena','¡Calla, hija! Si el hijo del capitán Morgan te oye, nos la cargamos.'],
+     ['luffy','¿Sin comer? ¡Eso es lo peor que le puede pasar a alguien!'],
+     ['nina','Le he hecho unas bolas de arroz... pero me da miedo llevárselas.']],choices:[
+     {n:'Acompañarla hasta el patio',s:'Que Zoro coma algo',f:()=>{G.f.onigiri=1;say('¡Gracias! ¡Vamos juntos!','nina');fama(1)}},
+     {n:'Ya iremos nosotros',f:()=>{say('Vale... tened cuidado.','nina')}}]})}
+  scene({bg:'taberna',place:'Restaurante',right:['duena'],lines:[['duena','¿Algo de comer, chicos?']],choices:[
+    {n:'Comer y descansar (15 💰)',cost:15,s:'Cura a toda la tripulación',f:()=>{G.berries-=15;healParty(1);say('Os ponéis las botas.')}},
+    {n:'Irse',f:()=>{}}]});
+}
+function patio(){
+  if(G.f.arc)return scene({bg:'patio',place:'Patio de la base',lines:[['narr','El patio está tranquilo. Los marines os saludan con la mano. Raro, pero bonito.']]});
+  if(!G.f.rumor)return scene({bg:'patio',place:'Base de la Marina',lines:[['narr','Una base enorme, llena de marines con cara de pocos amigos. Mejor preguntar antes en el pueblo.']]});
+  if(G.f.stage>=2)return scene({bg:'patio',place:'Patio de la base',right:['zoro'],lines:[['zoro','¿Qué haces aquí todavía? Mis espadas están en la torre de Morgan.']]});
+  const L=[['narr','En el patio, un espadachín atado a un poste. Tiene la mirada de una bestia.'],['zoro','¿Qué miráis? Largaos.'],
+   ['luffy','¡Tú eres el cazador de piratas! ¡Únete a mi tripulación!'],['zoro','¿Pirata? Ni loco. Me prometieron que si aguanto aquí un mes, me sueltan.']];
+  if(G.f.onigiri)L.push(['nina','T-te he traído bolas de arroz...'],['helmeppo','¡Eh, mocosa! ¿Comida para el prisionero? ¡Eso va contra MIS normas!'],['narr','Helmeppo tira las bolas de arroz al suelo y las pisotea. La niña se echa a llorar.']);
+  else L.push(['helmeppo','¡Jajaja! ¿Visitas para el perro atado? ¡Aquí mando yo, que mi padre es el capitán!']);
+  scene({bg:'patio',place:'Patio de la base',right:G.f.onigiri?['zoro','helmeppo','nina']:['zoro','helmeppo'],lines:L,choices:[
+    {n:'Darle un puñetazo a Helmeppo',s:'Combate · fama +2',f:()=>({fight:['helmeppo','marine'],opt:{bg:'patio',story:true,onWin:afterHelmeppo}})},
+    {n:'Aguantarse... por ahora',s:'Sin pelea',f:()=>{say('Helmeppo se va riéndose.');return{then:()=>stage2(false)}}}]});
+}
+function afterHelmeppo(){OUT=[];fama(2);const f=OUT;OUT=[];stage2(true,f)}
+function stage2(punched,extra=[]){
+  G.f.stage=2;quest('Recupera las espadas de Zoro en la torre de Morgan.');
+  const L=[...extra];
+  if(punched)L.push(['helmeppo','¡Me has pegado! ¡Se lo diré a mi padre!'],...(has('coby')?[['coby','Luffy... ¡le has pegado al hijo de Morgan!']]:[]),['luffy','Se lo merecía.']);
+  if(G.f.onigiri){L.push(['narr','Zoro estira el cuello y se come las bolas de arroz del suelo, con barro y todo.'],['zoro','...Estaban buenísimas. Dile a la niña que gracias.']);G.bond+=1}
+  L.push(['zoro','Eres un tipo raro. Mis espadas están en la torre de Morgan. Si me las traes... igual hablamos.']);
+  scene({bg:'patio',place:'Patio de la base',right:['zoro'],lines:L,next:renderIsland});
+}
+function torre(){
+  if(G.f.arc)return scene({bg:'torre',place:'Torre de Morgan',lines:[['narr','La torre está vacía. En lo alto ya no ondea la bandera de Morgan.']]});
+  if((G.f.stage||0)<2)return scene({bg:'torre',place:'Torre de Morgan',lines:[['narr','Una torre vigilada por marines. No tienes nada que hacer ahí... todavía.']]});
+  scene({bg:'torre',place:'Torre de Morgan',right:['marine','marine','fusilero'],lines:[['narr','Os coláis en la torre. En una sala, tres katanas apoyadas en la pared.'],['marine','¡Intrusos! ¡A por ellos!']],
+   choices:[{n:'¡Pelea!',s:'Combate',f:()=>({fight:['marine','marine','fusilero'],opt:{bg:'torre',story:true,onWin:zoroJoins}})}]});
+}
+function zoroJoins(){
+  if(!has('zoro')){const z=newMember('zoro',Math.max(2,G.crew[0].lv));G.crew.splice(1,0,z)}
+  G.bond=Math.max(G.bond,1);
+  scene({bg:'patio',place:'Patio de la base',right:['morgan','helmeppo'],left:partyKeys(),lines:[
+   ['narr','Corres al patio con las espadas. Zoro te mira de arriba abajo.'],
+   ['luffy','Aquí tienes. Si las coges, eres de mi tripulación.'],
+   ['zoro','Eres un demonio... Vale. Pero mi sueño es ser el mejor espadachín del mundo. Si te pones en medio, te corto.'],
+   ['luffy','¡Shishishi! ¡Así me gusta!'],['narr','⚔️ Zoro se une a la tripulación.'],
+   ['morgan','¡¿QUIÉN se atreve a desafiar al capitán Morgan en MI base?!'],['helmeppo','¡Esos, papá! ¡Esos me han pegado!'],
+   ['zoro','Primer trabajo como pirata. Qué casualidad.']],
+   choices:[{n:'¡A por Morgan!',s:'Combate final del arco',f:()=>({fight:['morgan','helmeppo'],opt:{bg:'patio',story:true,boss:true,onWin:arcEnd}})}]});
+}
+function arcEnd(){
+  G.f.arc=1;G.bounty+=50;OUT=[];fama(2);const ex=OUT;OUT=[];
+  const cob=has('coby');if(cob)G.crew=G.crew.filter(m=>m.key!=='coby');
+  quest('¡Arco completado! Explora: hay un astillero en Puerto Gaviota (noreste) y un islote misterioso al suroeste.');
+  scene({bg:'pueblo',place:'Shells Town',right:cob?['coby']:[],lines:[
+   ['narr','Morgan cae. Los marines tiran las armas... ¡y lo celebran! El pueblo entero sale a la calle.'],
+   ['marine','¡Se acabó el tirano! ¡Gracias, piratas!'],
+   ...(cob?[['coby','Luffy... yo me quedo aquí. Voy a entrar en la Marina. Algún día seré almirante.'],['luffy','¡Entonces la próxima vez que nos veamos seremos enemigos! ¡Shishishi!'],['narr','Coby se queda en Shells Town.']]:[]),
+   ['zoro','¿Y ahora qué, capitán?'],['luffy','¡Ahora necesitamos un navegante! ¡Y un cocinero! ¡Y un músico!'],
+   ['narr','☠️ Vuestra recompensa sube a '+G.bounty+'.'],...ex,
+   ['narr','FIN DEL ARCO 1. Puedes seguir explorando el mar, mejorar el barco y buscar tesoros.']],next:renderIsland});
+}
+
+/* ------------------------------------------------------------------------
+   COMBATE POR TURNOS (orden por velocidad) · HUD a color
+   ------------------------------------------------------------------------ */
+let B=null,PEND=null;
+const SLOTS={p:[[385,300],[240,312],[95,300]],e:[[575,300],[720,312],[865,300]]};
+function startBattle(keys,opt={}){
+  stopMaps();const snap=JSON.stringify(G);playMusic(opt.boss||keys.some(k=>FOES[k].elite)?'boss':'battle');
+  const P=G.crew.slice(0,3).map((m,i)=>({uid:'p'+i,key:m.key,side:'p',n:CHARS[m.key].n,hp:Math.max(1,m.hp),max:stat(m,'hp'),pe:m.pe,peMax:stat(m,'pe'),atk:stat(m,'atk'),def:stat(m,'def'),spd:stat(m,'spd'),ref:m,alive:true,buff:null,bleed:0}));
+  const E=keys.map((k,i)=>{const f=FOES[k];return{uid:'e'+i,key:k,side:'e',n:f.n,hp:f.hp,max:f.hp,atk:f.atk,def:f.def,spd:f.spd,alive:true,buff:null,bleed:0,defBonus:0}});
+  B={P,E,all:[...P,...E],opt,snap,keys,queue:[],cur:null,mode:'wait',log:[],round:0,rage:false};
+  drawBattle();
+  if(opt.cannons)later(()=>{E.forEach(e=>hit(null,e,0,{fixed:12}));logB('¡La andanada de cañones les pilla de lleno!','x');refreshUnits()},500);
+  if(opt.tutorial)logB('Consejo: elige una acción y luego toca al objetivo.','x');
+  later(newRound,opt.cannons?1100:700);
+}
+function logB(t,c='x'){if(!B)return;B.log.unshift([t,c]);B.log.length=Math.min(B.log.length,4);const l=document.getElementById('blog');if(l)l.innerHTML=B.log.map(([x,cc],i)=>`<div class="l${cc} ${i?'':'l0'}">${x}</div>`).join('')}
+function aliveS(s){return B.all.filter(u=>u.side===s&&u.alive)}
+function newRound(){if(!B)return;B.round++;B.queue=B.all.filter(u=>u.alive).sort((a,b)=>(b.spd+rand()*.9)-(a.spd+rand()*.9));nextTurn()}
+function nextTurn(){
+  if(checkEnd())return;
+  if(!B.queue.length)return newRound();
+  const u=B.queue.shift();if(!u.alive)return nextTurn();
+  B.cur=u;u.defend=false;u.globo=false;
+  if(u.buff){u.buff.t--;if(u.buff.t<=0){u.buff=null;fx(u,'Ataque normal','info')}}
+  if(u.bleed>0){hit(null,u,0,{fixed:u.bleed,quiet:true});logB(`${u.n} sangra (${u.bleed}).`,u.side);u.bleed=Math.max(0,u.bleed-1);if(!u.alive){refreshUnits();return later(nextTurn,500)}}
+  if(u.side==='p'){u.pe=Math.min(u.peMax,u.pe+1);B.mode='menu'}else B.mode='wait';
+  refreshUnits();drawQueue();drawMenu();
+  if(u.side==='e')later(()=>enemyAct(u),750);
+}
+function atkOf(u){return u.atk*(u.buff?u.buff.m:1)}
+function hit(src,tgt,pow,o={}){
+  if(!tgt.alive)return 0;
+  if(src&&tgt.key==='luffy'&&o.ranged){const d=Math.max(1,Math.round(atkOf(src)*pow));sfx('boing');fx(tgt,'¡Boing!','info');logB('¡Las balas rebotan en el cuerpo de goma de Luffy!','p');return hit(null,src,0,{fixed:d})}
+  if(src&&tgt.globo&&!o.ranged){const d=Math.max(1,Math.round(atkOf(src)*pow));fx(tgt,'¡Globo!','info');return hit(null,src,0,{fixed:d})}
+  let d,crit=false;
+  if(o.fixed)d=o.fixed;else{d=atkOf(src)*pow*(.9+rand()*.2)-(tgt.def+(tgt.defBonus||0))*.6;crit=rand()<.08;if(crit)d*=1.5;d=Math.max(1,Math.round(d))}
+  if(tgt.defend&&!o.fixed)d=Math.max(1,Math.round(d*.5));
+  tgt.hp-=d;fx(tgt,(crit?'¡CRÍTICO! ':'')+'-'+d,crit?'crit':'');sfx(crit?'crit':o.ranged?'shot':src&&['zoro','marine','morgan','helmeppo'].includes(src.key)?'slash':'hit');
+  const el=uEl(tgt);if(el){el.classList.remove('hitf');void el.offsetWidth;el.classList.add('hitf');pose(el.querySelector('img'),'hit',380)}
+  if(tgt.hp<=0){tgt.hp=0;tgt.alive=false;if(!o.quiet)logB(`${tgt.n} cae.`,tgt.side==='e'?'p':'e')}
+  return d;
+}
+function heal(u,v){const h=Math.min(v,u.max-u.hp);u.hp+=h;fx(u,'+'+h,'heal');sfx('heal');const el=uEl(u);if(el){const b=document.createElement('div');b.className='burst heal';el.querySelector('.spw').appendChild(b);setTimeout(()=>b.remove(),650)}}
+function uEl(u){return document.getElementById('u_'+u.uid)}
+function fx(u,t,c){const el=uEl(u);if(!el)return;const f=document.createElement('div');f.className='float '+(c||'');f.textContent=t;f.style.left=(50+(rand()-.5)*30)+'%';el.appendChild(f);setTimeout(()=>f.remove(),950)}
+function tecPose(u){const el=uEl(u),a=ASSETS[u.key];if(!el||!a||!a.tec)return false;sfx('stretch');const spw=el.querySelector('.spw'),base=spw.querySelector('img');if(!base)return false;
+  const ov=document.createElement('img');ov.className='spr tecov';ov.style.height=base.height+'px';ov.src=a.tec[0];base.style.visibility='hidden';spw.appendChild(ov);
+  setTimeout(()=>{ov.src=a.tec[1]},200);setTimeout(()=>{ov.remove();base.style.visibility=''},750);return true}
+function lunge(u){const el=uEl(u);if(!el)return;const c=u.side==='p'?'lunge-r':'lunge-l';el.classList.remove(c);void el.offsetWidth;el.classList.add(c);pose(el.querySelector('img'),'atk',420)}
+function banner(t,cls){const b=document.createElement('div');b.className='banner '+(cls||'');b.textContent=t;stage.appendChild(b);setTimeout(()=>b.remove(),1200)}
+function enemyAct(u){
+  if(!B)return;if(!u.alive)return nextTurn();
+  const f=FOES[u.key];
+  if(f.boss&&!B.rage&&u.hp<u.max*.5){B.rage=true;u.buff={m:1.3,t:99};stFx(u,'💢 ¡FURIA!','up');banner('¡Furia del capitán!','foe');logB(`${u.n}: «¡¿Cómo os atrevéis?!»`,'e')}
+  const mv=(()=>{let t=f.moves.reduce((s,m)=>s+m.w,0),r=rand()*t;for(const m of f.moves){if((r-=m.w)<=0)return m}return f.moves[0]})();
+  const foes=aliveS('p');if(!foes.length)return nextTurn();
+  lunge(u);
+  if(mv.def){u.defBonus=(u.defBonus||0)+mv.def;stFx(u,'🛡️ ¡Defensa ▲!','def');logB(`${u.n} usa ${mv.n}.`,'e')}
+  else if(mv.self){u.buff={m:mv.self,t:3};stFx(u,'⚔️ ¡Ataque ▲!','up');banner(mv.n,'foe');logB(`${u.n}: «${mv.n}»`,'e')}
+  else if(mv.buffAll){aliveS('e').forEach(a=>{a.buff={m:mv.buffAll,t:2};stFx(a,'⚔️ ¡Ataque ▲!','up')});logB(`${u.n}: «${mv.n}»`,'e')}
+  else if(mv.all){banner(mv.n,'foe');foes.forEach(t=>hit(u,t,mv.pow,{ranged:mv.ranged}));logB(`${u.n} usa ${mv.n}.`,'e')}
+  else{const t=chance(.5)?foes.reduce((a,b)=>a.hp<b.hp?a:b):pick(foes);hit(u,t,mv.pow,{ranged:mv.ranged});logB(`${u.n} usa ${mv.n} contra ${t.n}.`,'e')}
+  refreshUnits();later(nextTurn,700);
+}
+function act(kind,arg){
+  if(!B)return;const u=B.cur;sfx('click');
+  if(!u||u.side!=='p'||!['menu','target','tech','items'].includes(B.mode))return;
+  if(kind==='back'){PEND=null;B.mode='menu';refreshUnits();return drawMenu()}
+  if(kind==='attack'){PEND={run:t=>{lunge(u);banner('¡Ataque!','atk');hit(u,t,1);logB(`${u.n} ataca a ${t.n}.`,'p')}};return askTarget('e')}
+  if(kind==='defend'){u.defend=true;u.pe=Math.min(u.peMax,u.pe+2);stFx(u,'🛡️ ¡En guardia! +2 PE','guard');logB(`${u.n} se defiende (+2 PE).`,'p');return endAction()}
+  if(kind==='flee'){if(B.opt.story||B.opt.boss){logB('¡No se puede huir de esta pelea!','x');return}
+    if(chance(fleeChance())){logB('¡Huida con éxito!','p');B.mode='done';return later(()=>{writeBack();B=null;save();back()},600)}logB('¡No hay forma de escapar!','e');return endAction()}
+  if(kind==='techmenu'){B.mode='tech';return drawMenu()}
+  if(kind==='itemmenu'){B.mode='items';return drawMenu()}
+  if(kind==='tech'){const s=CHARS[u.key].skills.find(x=>x.id===arg);if(!s||u.pe<s.pe)return;
+    const run=t=>{u.pe-=s.pe;if(s.t==='self'||!tecPose(u))lunge(u);banner(s.n,'tec');fx(u,'-'+s.pe+' PE','pe');
+      if(s.t==='all'){aliveS('e').forEach(e=>hit(u,e,s.pow))}
+      else if(s.t==='one'){hit(u,t,s.pow);if(s.bleed&&t.alive){t.bleed=Math.max(t.bleed,s.bleed);stFx(t,'🩸 ¡Sangrado!','bleed')}}
+      else if(s.t==='self'){if(s.id==='globo'){u.globo=true;stFx(u,'🎈 ¡Globo!','globo')}if(s.buff){u.buff={m:s.buff,t:3};stFx(u,'⚔️ ¡Ataque ▲!','up')}}
+      else if(s.t==='ally'){if(s.heal)heal(t,s.heal);if(s.buff){t.buff={m:s.buff,t:3};stFx(t,'⚔️ ¡Ataque ▲!','up')}}
+      logB(`${u.n} usa ${s.n}.`,'p')};
+    if(s.t==='one'){PEND={run};return askTarget('e')}if(s.t==='ally'){PEND={run};return askTarget('p')}run();return endAction()}
+  if(kind==='combo'){const z=B.P.find(p=>p.key==='zoro'&&p.alive);if(!z||u.pe<4||z.pe<4)return;PEND={run:t=>{u.pe-=4;z.pe-=4;if(!tecPose(u))lunge(u);lunge(z);banner('¡Gomu Gomu... Oni Giri!','combo');hit(u,t,COMBO.pow);logB('¡Ataque combinado de Luffy y Zoro!','p')}};return askTarget('e')}
+  if(kind==='item'){const it=ITEMS[arg];if(!G.items[arg])return;
+    const run=t=>{G.items[arg]--;if(it.t==='ally'){if(it.heal)heal(t,it.heal);if(it.pe){t.pe=Math.min(t.peMax,t.pe+it.pe);fx(t,'+'+it.pe+' PE','pe')}}
+      if(it.t==='party')aliveS('p').forEach(p=>heal(p,it.heal));if(it.t==='foes'){banner('¡Bomba!','atk');aliveS('e').forEach(e=>hit(null,e,0,{fixed:it.dmg}))}logB(`${u.n} usa ${it.n}.`,'p')};
+    if(it.t==='ally'){PEND={run};return askTarget('p')}run();return endAction()}
+}
+function askTarget(side){B.mode='target';B.tside=side;refreshUnits();drawMenu();logB(side==='e'?'Elige un enemigo.':'Elige a un aliado.','x')}
+function pickTarget(uid){if(!B||B.mode!=='target')return;const t=B.all.find(x=>x.uid===uid);if(!t||!t.alive||t.side!==B.tside)return;B.mode='busy';const r=PEND.run;PEND=null;r(t);endAction()}
+function endAction(){B.mode='busy';refreshUnits();drawMenu();later(nextTurn,700)}
+function checkEnd(){
+  if(!B)return true;
+  if(!aliveS('e').length){B.mode='done';banner('¡Victoria!','win');later(winBattle,900);return true}
+  if(!aliveS('p').length){B.mode='done';banner('Derrota','lose');later(loseBattle,900);return true}
+  return false;
+}
+function writeBack(){B.P.forEach(u=>{u.ref.hp=Math.max(1,Math.round(u.hp));u.ref.pe=u.pe})}
+function winBattle(){
+  if(!B)return;writeBack();const o=B.opt;let xp=0,gold=0;const drops=[];OUT=[];
+  B.E.forEach(e=>{const f=FOES[e.key];xp+=f.xp;gold+=ri(f.gold[0],f.gold[1]);(f.drop||[]).forEach(([d,p])=>{if(chance(p))drops.push(d)})});
+  if(G.rares.includes('doblon'))gold=Math.round(gold*1.3);
+  G.berries+=gold;G.bounty+=Math.round(xp/4);
+  const lines=[`<span class="num">+${gold} 💰 · +${xp} XP</span>`];
+  drops.forEach(d=>{if(d.startsWith('eq:')){const k=d.slice(3);if(G.bag.includes(k)||G.crew.some(m=>Object.values(m.eq).includes(k)))return;gainEq(k);lines.push(`🎁 ${EQUIP[k].n} (equípalo en la bitácora)`)}else if(d.startsWith('rare:')){gainRare(d.slice(5));lines.push(...OUT.map(x=>x[1]));OUT=[]}else{gainItem(d);lines.push(`🎁 ${ITEMS[d].n}`)}});
+  B.P.forEach(u=>{const m=u.ref;m.xp+=xp;while(m.xp>=xpNext(m.lv)&&m.lv<10){m.xp-=xpNext(m.lv);m.lv++;m.sp++;m.hp=stat(m,'hp');m.pe=stat(m,'pe');lines.push(`⭐ ¡${CHARS[m.key].n} sube a nivel ${m.lv}! (+1 punto de técnica)`)}});
+  if(B.P.some(p=>p.key==='zoro')&&B.P.some(p=>p.key==='luffy')){const before=Math.floor(G.bond);G.bond=Math.min(5,G.bond+.34);if(Math.floor(G.bond)>before)lines.push(`🤝 Vínculo Luffy–Zoro: ${'★'.repeat(Math.floor(G.bond))}${Math.floor(G.bond)===3?' ¡Ataque combinado desbloqueado!':''}`)}
+  const bg=o.bg;B=null;save();stopMusic();sfx('victory');later(()=>sfx('coin'),900);if(lines.some(l=>l.includes('sube a nivel')))later(()=>sfx('levelup'),1400);
+  window.afterWin=()=>{o.onWin?o.onWin():back()};
+  const luffyOk=G.crew.find(m=>m.key==='luffy');
+  stage.innerHTML=`<div class="vnbg" style="${bgStyle(bg||'cubierta')}"></div>${hud()}${luffyOk?`<div class="abs" style="left:8px;bottom:30px;z-index:21">${img("luffywin",190)}</div>`:''}<div class="panel perg"><h1>¡Victoria!</h1>${lines.map(l=>`<p style="margin-top:4px">${l}</p>`).join('')}<button class="primary" style="margin-top:14px" onclick="afterWin()">Continuar</button></div>`;
+}
+function loseBattle(){
+  if(!B)return;const o=B.opt,snap=B.snap,keys=B.keys;B=null;stopMusic();sfx('defeat');
+  if(o.story){window.retry=()=>{G=JSON.parse(snap);G.crew.forEach(m=>{m.hp=stat(m,'hp');m.pe=stat(m,'pe')});startBattle(keys,o)};
+    stage.innerHTML=`<div class="vnbg" style="${bgStyle(o.bg||'cubierta')}"></div><div class="panel perg"><h1>Derrota</h1><p>Esta pelea es importante. ¿Lo intentas otra vez? La tripulación vuelve con la vida y la energía al máximo.</p><button class="primary" style="margin-top:12px" onclick="retry()">Reintentar</button></div>`;return}
+  G=JSON.parse(snap);G.berries=Math.floor(G.berries/2);G.crew.forEach(m=>{m.hp=Math.ceil(stat(m,'hp')*.5)});
+  const id=G.lastIsl||'villa',p=islStart(id);G.isl={id,x:p[0],y:p[1],face:1};shipToDock(id);G.mode='island';save();
+  stage.innerHTML=`<div class="vnbg" style="${bgStyle('playa')}"></div><div class="panel perg"><h1>Derrota</h1><p>Os despertáis en ${ISLANDS[id].n}, con medio botín menos y muchos chichones.</p><button class="primary" style="margin-top:12px" onclick="renderIsland()">Continuar</button></div>`;
+}
+function unitHTML(u,i){
+  const tg=B.mode==='target'&&u.side===B.tside&&u.alive,big=FOES[u.key]?.boss||FOES[u.key]?.elite,sz=['reymarino','cangrejo'].includes(u.key)?150:big?128:104;
+  const [x,y]=SLOTS[u.side][i];
+  const aura=(u.buff&&u.buff.m>=1?' buffed':'')+(u.defend||u.defBonus?' guarding':'')+(u.bleed?' bleeding':'')+(u.globo?' ballooned':'');
+  return `<div class="unit ${u.side}${aura}${!u.alive&&ASSETS[u.key]?.ko?' hasko':''} ${u===B.cur&&B.mode!=='done'?'turn':''} ${tg?'tgt':''} ${tg&&u.side==='p'?'ally':''} ${u.alive?'':'dead'}" id="u_${u.uid}" style="left:${x-75}px;top:${y-(sz+86)}px" ${tg?`onclick="pickTarget('${u.uid}')"`:''}>
+   <div class="spw">${!u.alive&&ASSETS[u.key]?.ko?`<img class="spr" src="${ASSETS[u.key].ko}" style="width:${sz*1.45}px;height:auto;margin-left:-${sz*.2}px">`:img(u.key,sz)}</div><div class="plate"><div class="nm">${u.n}</div><div class="bar hp ${u.side}"><i style="width:${100*u.hp/u.max}%"></i></div><div class="nums">❤️ ${u.hp}/${u.max}${u.side==='p'?` · 🔷 ${u.pe}/${u.peMax}`:''}</div>
+   ${u.side==='p'?`<div class="bar pe"><i style="width:${100*u.pe/u.peMax}%"></i></div>`:''}</div>${chipsHTML(u,big)}</div>`;
+}
+function chipsHTML(u,big){const c=[];
+  if(u.buff)c.push(`<span class="chip ${u.buff.m>=1?'up':'down'}">⚔️ ATQ ${u.buff.m>=1?'▲':'▼'}${u.buff.t>50?'':' '+u.buff.t+'t'}</span>`);
+  if(u.defBonus)c.push(`<span class="chip def">🛡️ DEF ▲ +${u.defBonus}</span>`);
+  if(u.defend)c.push(`<span class="chip guard">🛡️ GUARDIA</span>`);
+  if(u.globo)c.push(`<span class="chip globo">🎈 GLOBO</span>`);
+  if(u.bleed)c.push(`<span class="chip bleed">🩸 ${u.bleed}</span>`);
+  return `<div class="chips" style="top:${big?-8:6}px">${c.join('')}</div>`}
+function stFx(u,t,cls){sfx(cls==='bleed'?'debuff':'buff');const el=uEl(u);if(!el)return;const f=document.createElement('div');f.className='float st '+cls;f.textContent=t;f.style.top='30px';el.appendChild(f);setTimeout(()=>f.remove(),1300);
+  const b=document.createElement('div');b.className='burst '+cls;el.querySelector('.spw').appendChild(b);setTimeout(()=>b.remove(),650)}
+function drawBattle(){
+  if(!B)return;
+  stage.innerHTML=`<div class="bfield" style="${bgStyle(B.opt.bg||'cubierta')}"></div>${hud()}<div class="queue perg" id="queue"></div>
+   <div id="units">${B.P.map(unitHTML).join('')}${B.E.map(unitHTML).join('')}</div>
+   <div class="blog perg" id="blog"></div><div class="cmd" id="menu"></div>`;
+  logB(B.log.length?B.log.shift()[0]:'¡Comienza el combate!','x');drawQueue();drawMenu();
+}
+function drawQueue(){const q=document.getElementById('queue');if(!q||!B)return;q.innerHTML=`<span class="lab">Turnos</span>`+[B.cur,...B.queue].filter(u=>u&&u.alive).slice(0,8).map((u,i)=>`<div class="q ${u.side} ${i===0?'now':''}">${img(u.key,36)}</div>`).join('')}
+function refreshUnits(){if(!B)return;const w=document.getElementById('units');if(!w)return;
+  [...B.P.map((u,i)=>[u,i]),...B.E.map((u,i)=>[u,i])].forEach(([u,i])=>{const el=uEl(u);if(!el)return;const t=document.createElement('div');t.innerHTML=unitHTML(u,i);const nw=t.firstElementChild;
+    el.className=nw.className+[...el.classList].filter(c=>c==='lunge-r'||c==='lunge-l'||c==='hitf').map(c=>' '+c).join('');el.querySelector('.plate').innerHTML=nw.querySelector('.plate').innerHTML;if(!u.alive&&ASSETS[u.key]?.ko&&!el.dataset.ko){el.dataset.ko=1;el.querySelector('.spw').innerHTML=nw.querySelector('.spw').innerHTML}el.querySelector('.chips').outerHTML=nw.querySelector('.chips').outerHTML;
+    if(nw.getAttribute('onclick'))el.setAttribute('onclick',nw.getAttribute('onclick'));else el.removeAttribute('onclick')});refreshHud()}
+function drawMenu(){
+  const m=document.getElementById('menu');if(!m||!B)return;const u=B.cur;
+  if(!u||B.mode==='done'){m.innerHTML='';return}
+  if(u.side==='e'){m.innerHTML=`<div class="cmdhead perg foe">⚔️ Turno de ${u.n}...</div>`;return}
+  const head=`<div class="cmdhead perg"><b>Turno de ${u.n}</b><span class="num">❤️ ${u.hp}/${u.max} · 🔷 ${u.pe} PE</span></div>`;
+  if(B.mode==='busy'){m.innerHTML=head;return}
+  if(B.mode==='target'){m.innerHTML=head+`<button class="cbtn back" onclick="act('back')">← Cancelar · ${B.tside==='e'?'toca un enemigo':'toca un aliado'}</button>`;return}
+  if(B.mode==='tech'){const sk=CHARS[u.key].skills.filter(s=>u.ref.skills.includes(s.id));const z=B.P.find(p=>p.key==='zoro'&&p.alive);const combo=u.key==='luffy'&&G.bond>=3&&z;
+    m.innerHTML=head+`<div class="cmdlist">${sk.map(s=>`<button class="cbtn t-${s.t}" ${u.pe<s.pe?'disabled':''} onclick="act('tech','${s.id}')"><span class="pe-tag">${s.pe} PE</span>${s.n}<small>${s.d}</small></button>`).join('')}
+     ${combo?`<button class="cbtn t-combo" ${u.pe<4||z.pe<4?'disabled':''} onclick="act('combo')"><span class="pe-tag">4+4</span>🤝 ${COMBO.n}<small>${COMBO.d}</small></button>`:''}
+     <button class="cbtn back" onclick="act('back')">← Volver</button></div>`;return}
+  if(B.mode==='items'){const it=Object.keys(G.items).filter(k=>G.items[k]>0);
+    m.innerHTML=head+`<div class="cmdlist">${it.map(k=>`<button class="cbtn t-item" onclick="act('item','${k}')"><span class="pe-tag">×${G.items[k]}</span>${ITEMS[k].n}<small>${ITEMS[k].d}</small></button>`).join('')||'<div class="perg" style="padding:8px">No te queda nada.</div>'}<button class="cbtn back" onclick="act('back')">← Volver</button></div>`;return}
+  m.innerHTML=head+`<div class="cmdgrid">
+   <button class="cbtn atk" onclick="act('attack')">⚔️ Atacar<small>Golpe normal</small></button>
+   <button class="cbtn tec" onclick="act('techmenu')">✨ Técnica<small>Gasta PE</small></button>
+   <button class="cbtn obj" onclick="act('itemmenu')">🎒 Objeto<small>Consumibles</small></button>
+   <button class="cbtn def" onclick="act('defend')">🛡️ Defender<small>−50% daño · +2 PE</small></button>
+   <button class="cbtn run" onclick="act('flee')" ${B.opt.story?'disabled':''}>💨 Huir<small>${B.opt.story?'No se puede':Math.round(fleeChance()*100)+'%'}</small></button></div>`;
+}
+
+/* ------------------------------------------------------------------------ */
+renderTitle();
+</script>
+</body>
+</html>
