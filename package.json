@@ -1,0 +1,47 @@
+{
+  "name": "mar-de-leyendas",
+  "productName": "Mar de Leyendas",
+  "version": "0.9.0",
+  "description": "Juego de rol por turnos ambientado en One Piece",
+  "author": "Rubén",
+  "private": true,
+  "main": "escritorio/main.js",
+  "scripts": {
+    "start": "electron .",
+    "construir": "electron-builder --win",
+    "publicar": "electron-builder --win --publish always"
+  },
+  "build": {
+    "appId": "es.ruben.mardeleyendas",
+    "productName": "Mar de Leyendas",
+    "files": [
+      "slice/**",
+      "escritorio/**",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "escritorio/icono.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "shortcutName": "Mar de Leyendas"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "USUARIO_DE_GITHUB",
+      "repo": "mar-de-leyendas"
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11"
+  }
+}
