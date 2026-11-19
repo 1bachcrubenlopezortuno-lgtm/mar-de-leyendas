@@ -1,6 +1,6 @@
 # Mar de Leyendas: juego de One Piece (v0.9)
 
-Juego de rol por turnos ambientado en One Piece. Es un proyecto personal para jugar con amigos. Primero es web y más adelante será app de móvil. El arco jugable es Shells Town (Luffy, Coby, Zoro, Helmeppo, Morgan).
+Juego de rol por turnos ambientado en One Piece. Es un proyecto personal para jugar con amigos. Se reparte como programa de Windows (Electron) que se actualiza solo; más adelante será app de móvil con la misma carpeta `slice/`. El arco jugable es Shells Town (Luffy, Coby, Zoro, Helmeppo, Morgan).
 
 ## Estructura
 - `slice/index.html`: solo carga el CSS y los scripts en orden. No hace falta compilar nada: se abre con doble clic. Para probar con servidor, `.claude/launch.json` («juego») sirve `slice/` en el puerto 8765.
@@ -26,6 +26,10 @@ Juego de rol por turnos ambientado en One Piece. Es un proyecto personal para ju
      - `sprites`, `texturas`, `audio`, `estado`, `mar_mundo`, `mapas`, `islas`, `mar`, `encuentros`, `lugares` (muelle y tienda), `escenas`, `menu`, `combate` y `titulo`.
   5. `main.js`: arranque.
 - `slice/sprites/`: sprites PNG de los personajes, hechos por Rubén con ChatGPT. Cada personaje tiene `_reposo_1`, `_reposo_2`, `_ataque` y `_golpe`. También están el paseo de Luffy, su técnica, KO y victoria, y `barco_0..3`.
+- `slice/fuentes/`: Baloo 2, Lilita One y Pirata One en woff2 (licencia OFL), para que funcione sin internet.
+- `slice/js/motor/escritorio.js`: si existe `window.escritorio` (ejecutable), muestra sus avisos. En el navegador no hace nada.
+- `escritorio/`: carcasa de Electron. `main.js` abre `slice/index.html` y busca actualizaciones; `preload.js` expone `window.escritorio = {version, onAviso}`; `icono.png`.
+- `package.json`: versión del juego y comandos de npm. `dist/` (instaladores) y `node_modules/` no van a git.
 - `tools/cut.py`: recorta y limpia hojas de sprites (quita el fondo blanco y separa los fotogramas).
 - `tools/patch*.py`: parches históricos del HTML antiguo de un solo archivo. Solo sirven de referencia y ya no se pueden aplicar.
 
@@ -73,6 +77,18 @@ Juego de rol por turnos ambientado en One Piece. Es un proyecto personal para ju
   - Misiones lee `ARCS` y `SIDE_QUESTS`.
 - **Guardado:** en `localStorage` con la clave `mdl_save` y la versión `G.v=7`. Si cambia la estructura de la partida, hay que subir la versión y migrar en `loadSave()`. Las islas y los datos no se guardan; solo `G`.
 - **Pruebas automáticas:** con `window.SIM=true`, `later()` pasa a ser síncrono y el audio se desactiva. Así se puede jugar el arco entero llamando a `startNew`, `poi`, `choose` y `act` desde la consola o con Playwright.
+
+## Ejecutable y versiones
+- `npm start`: abre el juego en una ventana de Electron para probar. Con `$env:MDL_AVISO_PRUEBA='1'` antes, enseña un aviso de actualización de prueba.
+- `npm run construir`: genera `dist/Mar de Leyendas Setup X.Y.Z.exe` sin publicarlo. El instalador solo lleva `slice/`, `escritorio/` y `package.json`; `Sprites/`, `tools/` y `docs/` se quedan fuera.
+- **Publicar una versión para los amigos:**
+  1. Subir `version` en `package.json` (por ejemplo, de 0.9.0 a 0.9.1). Sin subirla, nadie recibe la actualización.
+  2. Hacer commit.
+  3. En PowerShell: `$env:GH_TOKEN='<token>'; npm run publicar`. Sube el instalador a GitHub Releases. El token no se guarda nunca en un archivo del proyecto.
+- Al abrir el juego instalado, busca versiones nuevas en GitHub, las descarga por diferencias y las instala al cerrar. Sin internet no pasa nada.
+- En `package.json`, `build.publish.owner` tiene que ser el usuario de GitHub de Rubén y `repo` el repositorio público.
+- El ejecutable no está firmado: la primera vez Windows dice «Windows protegió su PC». Hay que pulsar «Más información» y luego «Ejecutar de todas formas».
+- La partida del ejecutable va aparte de la del navegador (otro `localStorage`).
 
 ## Reglas del proyecto
 - Los personajes oficiales solo se ven con los sprites de Rubén. Si falta uno, se pone una silueta provisional y no se dibuja el personaje a mano.
