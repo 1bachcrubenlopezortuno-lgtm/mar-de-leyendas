@@ -1,0 +1,2 @@
+/* Arranque del juego */
+renderTitle();
