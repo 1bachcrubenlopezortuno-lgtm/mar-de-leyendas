@@ -33,7 +33,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "USUARIO_DE_GITHUB",
+      "owner": "1bachcrubenlopezortuno-lgtm",
       "repo": "mar-de-leyendas",
       "releaseType": "release"
     }
